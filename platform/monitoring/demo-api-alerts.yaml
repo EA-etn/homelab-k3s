@@ -1,0 +1,43 @@
+# Alertas de demo-api. Las métricas las publica la app en /metrics
+# (prometheus-fastapi-instrumentator) y Prometheus las recoge con su ServiceMonitor.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: demo-api
+  namespace: monitoring
+spec:
+  groups:
+    - name: demo-api
+      rules:
+        - alert: DemoApiDown
+          expr: absent(up{namespace="demo-api"} == 1)
+          for: 2m
+          labels: {severity: critical}
+          annotations:
+            summary: demo-api no responde
+            description: Ninguna réplica de demo-api responde a Prometheus desde hace 2 minutos.
+        - alert: DemoApiHighErrorRate
+          expr: |
+            sum(rate(http_requests_total{namespace="demo-api", status="5xx"}[5m]))
+              / clamp_min(sum(rate(http_requests_total{namespace="demo-api"}[5m])), 1e-9) > 0.05
+          for: 5m
+          labels: {severity: warning}
+          annotations:
+            summary: demo-api devuelve demasiados errores
+            description: Más del 5 % de las peticiones terminan en 5xx desde hace 5 minutos.
+        - alert: DemoApiSlow
+          expr: |
+            histogram_quantile(0.95,
+              sum by (le) (rate(http_request_duration_seconds_bucket{namespace="demo-api"}[5m]))) > 0.5
+          for: 10m
+          labels: {severity: warning}
+          annotations:
+            summary: demo-api va lenta
+            description: El percentil 95 de latencia supera 500 ms desde hace 10 minutos.
+        - alert: DemoApiSingleNode
+          expr: count(count by (node) (kube_pod_info{namespace="demo-api", created_by_kind="ReplicaSet"})) < 2
+          for: 15m
+          labels: {severity: info}
+          annotations:
+            summary: Todas las réplicas de demo-api están en un solo nodo
+            description: Si ese nodo cae, demo-api se queda sin servicio hasta que se reprogramen los pods.

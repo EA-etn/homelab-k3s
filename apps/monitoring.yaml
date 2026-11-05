@@ -1,0 +1,95 @@
+# Observabilidad: Prometheus, Grafana y Alertmanager (kube-prometheus-stack).
+# Lo pesado corre en el portátil (homelab/role=worker) para no cargar la Raspberry Pi.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: monitoring
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io/foreground
+spec:
+  project: default
+  source:
+    repoURL: https://prometheus-community.github.io/helm-charts
+    chart: kube-prometheus-stack
+    targetRevision: 92.17.1
+    helm:
+      releaseName: monitoring
+      valuesObject:
+        # k3s integra estos componentes en un solo proceso y no los expone: sin esto
+        # habría objetivos caídos y alertas falsas.
+        kubeEtcd: {enabled: false}
+        kubeControllerManager: {enabled: false}
+        kubeScheduler: {enabled: false}
+        kubeProxy: {enabled: false}
+        defaultRules:
+          rules:
+            etcd: false
+            kubeControllerManager: false
+            kubeProxy: false
+            kubeSchedulerAlerting: false
+            kubeSchedulerRecording: false
+            windows: false
+
+        prometheusOperator:
+          nodeSelector: {homelab/role: worker}
+
+        prometheus:
+          prometheusSpec:
+            nodeSelector: {homelab/role: worker}
+            # Recoger los ServiceMonitor/PodMonitor/reglas de cualquier app, no solo de este chart
+            serviceMonitorSelectorNilUsesHelmValues: false
+            podMonitorSelectorNilUsesHelmValues: false
+            ruleSelectorNilUsesHelmValues: false
+            retention: 7d
+            retentionSize: 8GB
+            resources:
+              requests: {cpu: 200m, memory: 512Mi}
+              limits: {memory: 1536Mi}
+            storageSpec:
+              volumeClaimTemplate:
+                spec:
+                  storageClassName: local-path
+                  accessModes: [ReadWriteOnce]
+                  resources:
+                    requests: {storage: 10Gi}
+
+        alertmanager:
+          alertmanagerSpec:
+            nodeSelector: {homelab/role: worker}
+            resources:
+              requests: {cpu: 10m, memory: 32Mi}
+
+        kube-state-metrics:
+          nodeSelector: {homelab/role: worker}
+
+        grafana:
+          nodeSelector: {homelab/role: worker}
+          # La contraseña de admin NO está en Git: vive en un Secret creado a mano
+          admin:
+            existingSecret: grafana-admin
+            userKey: admin-user
+            passwordKey: admin-password
+          ingress:
+            enabled: true
+            ingressClassName: traefik
+            hosts: [grafana.home.arpa]
+          sidecar:
+            dashboards:
+              searchNamespace: ALL
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      # Los CRDs de Prometheus son demasiado grandes para el apply clásico
+      - ServerSideApply=true
+    retry:
+      limit: 10
+      backoff: {duration: 15s, factor: 2, maxDuration: 5m}
