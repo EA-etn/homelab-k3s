@@ -1,0 +1,34 @@
+# demo-api: la app que entrega el proyecto DevSecOps Pipeline.
+# El chart y la versión exacta de la imagen viven en ese repo: su pipeline escribe
+# image.tag en values-homelab.yaml tras cada merge, y ArgoCD lo despliega aquí.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: demo-api
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/EA-etn/devsecops-pipeline.git
+    targetRevision: main
+    path: chart/demo-api
+    helm:
+      valueFiles:
+        - values-homelab.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: demo-api
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 3m

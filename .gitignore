@@ -1,0 +1,6 @@
+# Credenciales del clúster: nunca en Git
+*.kubeconfig
+kubeconfig*
+node-token
+*.token
+.env

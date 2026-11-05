@@ -1,0 +1,24 @@
+# App of Apps: la única Application que se aplica a mano.
+# ArgoCD lee la carpeta apps/ de este repo y crea (y mantiene) todo lo que haya allí.
+#
+#   kubectl apply -f bootstrap/root-app.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/EA-etn/homelab-k3s.git
+    targetRevision: main
+    path: apps
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
