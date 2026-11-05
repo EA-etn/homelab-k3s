@@ -36,6 +36,7 @@ homelab-k3s ──(apps/)──► ArgoCD ──► k3s: Raspberry Pi 4 (arm64) 
 | `bootstrap/join-worker.sh` | Une un equipo al clúster como agente k3s (misma versión que el servidor) |
 | `bootstrap/root-app.yaml` | App of Apps: la única Application que se aplica a mano |
 | `apps/` | Una Application de ArgoCD por carga de trabajo. Añade un archivo aquí para desplegar algo |
+| `platform/monitoring/` | Dashboards de Grafana y alertas de Prometheus como código |
 | `docs/inventory.md` | Hardware, red y software instalado |
 
 ## Puesta en marcha
@@ -58,7 +59,7 @@ kubectl -n argocd get applications
 - [x] Portátil unido como worker amd64
 - [x] App of Apps: el clúster gestionado desde este repo
 - [x] `demo-api` desplegada en los dos nodos (una réplica por arquitectura)
-- [ ] Observabilidad: Prometheus y Grafana
+- [x] Observabilidad: Prometheus, Grafana y alertas de `demo-api`
 - [ ] Secretos de OpenBao gestionados como código
 - [ ] Limpiar las cargas de prueba antiguas
 

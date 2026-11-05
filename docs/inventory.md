@@ -26,11 +26,14 @@ Estado registrado el 2026-11-05. Actualízalo cuando cambie el hardware o lo ins
 | OpenBao + agent injector | en ejecución | `openbao` | instalación previa |
 | `root` (App of Apps) | Synced / Healthy | `argocd` | este repo (`bootstrap/root-app.yaml`) |
 | `demo-api` | 2 réplicas: una en `devops-lab`, otra en `nexcore` | `demo-api` | ArgoCD (`apps/demo-api.yaml`) |
+| `monitoring` (kube-prometheus-stack 92.17.1) | Prometheus, Grafana, Alertmanager en `nexcore`; node-exporter en ambos nodos | `monitoring` | ArgoCD (`apps/monitoring.yaml`) |
 | `devops-lab-app` | en ejecución | `default` | ArgoCD (repo antiguo `devops-lab`) |
 | `nginx-test`, `postgres-test` | pruebas | `default` | manifiestos sueltos |
 | `myapp-secret-test` | `Unknown` (prueba de OpenBao colgada) | `default` | manifiestos sueltos |
 
 ## Observaciones
+
+- Grafana: `http://grafana.home.arpa` (entrada en `/etc/hosts` → `10.9.8.100`). Usuario y contraseña en el Secret `monitoring/grafana-admin`, creado a mano (no está en Git).
 
 - `demo-api` responde en `http://demo-api.home.arpa` (entrada en `/etc/hosts` de `nexcore` → `10.9.8.100`, Traefik).
 
