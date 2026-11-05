@@ -108,7 +108,8 @@ data:
                     "value": null
                   }
                 ]
-              }
+              },
+              "noValue": "0 req/s"
             },
             "overrides": []
           },
@@ -167,7 +168,8 @@ data:
                     "value": 0.05
                   }
                 ]
-              }
+              },
+              "noValue": "0 %"
             },
             "overrides": []
           },
@@ -188,7 +190,7 @@ data:
                 "type": "prometheus",
                 "uid": "prometheus"
               },
-              "expr": "sum(rate(http_requests_total{namespace=\"demo-api\",status=\"5xx\"}[5m])) / clamp_min(sum(rate(http_requests_total{namespace=\"demo-api\"}[5m])),1e-9)"
+              "expr": "(sum(rate(http_requests_total{namespace=\"demo-api\",status=\"5xx\"}[5m])) or vector(0)) / clamp_min(sum(rate(http_requests_total{namespace=\"demo-api\"}[5m])),1e-9)"
             }
           ]
         },
@@ -226,7 +228,8 @@ data:
                     "value": 0.5
                   }
                 ]
-              }
+              },
+              "noValue": "sin tráfico"
             },
             "overrides": []
           },
