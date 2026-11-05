@@ -55,9 +55,9 @@ kubectl -n argocd get applications
 
 - [x] k3s control plane on a Raspberry Pi 4 booting from SSD
 - [x] ArgoCD and OpenBao (secrets) installed
-- [ ] Laptop joined as an amd64 worker
-- [ ] App of Apps: the cluster managed from this repo
-- [ ] `demo-api` deployed across both nodes
+- [x] Laptop joined as an amd64 worker
+- [x] App of Apps: the cluster managed from this repo
+- [x] `demo-api` deployed across both nodes (one replica per architecture)
 - [ ] Observability: Prometheus and Grafana
 - [ ] Secrets from OpenBao managed as code
 - [ ] Clean up legacy test workloads

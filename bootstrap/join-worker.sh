@@ -15,6 +15,12 @@ NODE_ROLE="${NODE_ROLE:-worker}"
 KEEP_AWAKE="${KEEP_AWAKE:-true}"                  # portátil: no suspender al cerrar la tapa
 
 : "${K3S_TOKEN:?Define K3S_TOKEN con el token del servidor (ver la cabecera del script)}"
+# Un token de k3s empieza por K10. Si no, casi seguro se copió con texto de más (por ejemplo, el prompt).
+case "$K3S_TOKEN" in
+  K10*) ;;
+  *) echo "El token no empieza por K10 (empieza por '${K3S_TOKEN:0:4}'). Cópialo de nuevo, solo la línea del token." >&2
+     exit 1 ;;
+esac
 [ "$(id -u)" -eq 0 ] || { echo "Ejecuta el script con sudo." >&2; exit 1; }
 
 echo "==> Comprobando que el servidor responde en ${SERVER_IP}:6443"
