@@ -55,9 +55,9 @@ kubectl -n argocd get applications
 
 - [x] Control plane de k3s en una Raspberry Pi 4 arrancando desde SSD
 - [x] ArgoCD y OpenBao (secretos) instalados
-- [ ] Portátil unido como worker amd64
-- [ ] App of Apps: el clúster gestionado desde este repo
-- [ ] `demo-api` desplegada en los dos nodos
+- [x] Portátil unido como worker amd64
+- [x] App of Apps: el clúster gestionado desde este repo
+- [x] `demo-api` desplegada en los dos nodos (una réplica por arquitectura)
 - [ ] Observabilidad: Prometheus y Grafana
 - [ ] Secretos de OpenBao gestionados como código
 - [ ] Limpiar las cargas de prueba antiguas
