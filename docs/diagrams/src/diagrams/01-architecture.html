@@ -1,79 +1,80 @@
-<!-- size: 1800x880 -->
+<!-- size: 1200x1300 -->
+<!-- Formato estrecho y alto: en la columna del README (~830 px) el texto se lee sin ampliar -->
 <div class="title">
   <div class="eyebrow">homelab-k3s · arquitectura</div>
   <h1>Clúster on-premise gestionado desde Git</h1>
 </div>
 
 <!-- Git: fuente de verdad -->
-<div class="zone" style="--c:var(--purple);left:40px;top:140px;width:300px;height:660px"><div class="zl">github</div></div>
-<div class="card" id="hl" style="--c:var(--purple);left:60px;top:200px;width:260px">
+<div class="zone" style="--c:var(--purple);left:40px;top:140px;width:850px;height:170px"><div class="zl">github</div></div>
+<div class="card" id="hl" style="--c:var(--purple);left:60px;top:195px;width:260px">
   <div class="ico"><i data-icon="github"></i></div>
   <div><h3>homelab-k3s</h3><div class="sub">apps/ · platform/</div></div>
 </div>
-<div class="card" id="dsp" style="--c:var(--purple);left:60px;top:330px;width:260px">
+<div class="card" id="dsp" style="--c:var(--purple);left:340px;top:195px;width:260px">
   <div class="ico"><i data-icon="git-branch"></i></div>
   <div><h3>Pipeline</h3><div class="sub">chart · tag sha-…</div></div>
 </div>
-<div class="card" id="ghcr" style="--c:var(--purple);left:60px;top:480px;width:260px">
+<div class="card" id="ghcr" style="--c:var(--purple);left:620px;top:195px;width:250px">
   <div class="ico"><i data-icon="container"></i></div>
   <div><h3>ghcr.io</h3><div class="sub">imagen firmada</div></div>
 </div>
 
+<div class="card" id="user" style="--c:var(--purple);left:915px;top:195px;width:245px">
+  <div class="ico"><i data-icon="user"></i></div>
+  <div><h3>Usuario</h3><div class="sub">navegador · curl</div></div>
+</div>
+
 <!-- Clúster -->
-<div class="zone" style="--c:var(--green);left:380px;top:140px;width:1060px;height:660px"><div class="zl">clúster k3s · v1.36</div></div>
-<div class="card" id="argo" style="--c:var(--green);left:410px;top:195px;width:330px">
+<div class="zone" style="--c:var(--green);left:40px;top:360px;width:1120px;height:700px"><div class="zl">clúster k3s · v1.36</div></div>
+<div class="card" id="argo" style="--c:var(--green);left:70px;top:415px;width:420px">
   <div class="ico"><i data-icon="refresh-cw"></i></div>
   <div><h3>ArgoCD</h3><div class="sub">App of Apps · self-heal</div></div>
 </div>
-<div class="card" id="tr" style="--c:var(--blue);left:1080px;top:195px;width:330px">
+<div class="card" id="tr" style="--c:var(--blue);left:810px;top:415px;width:320px">
   <div class="ico"><i data-icon="route"></i></div>
   <div><h3>Traefik</h3><div class="sub mono">*.home.arpa</div></div>
 </div>
 
-<div class="zone" id="npi" style="--c:var(--cyan);left:410px;top:330px;width:420px;height:440px"><div class="zl">raspberry pi 4 · arm64</div></div>
-<div class="card" style="--c:var(--cyan);left:440px;top:390px;width:360px">
+<div class="zone" id="npi" style="--c:var(--cyan);left:70px;top:560px;width:400px;height:470px"><div class="zl">raspberry pi 4 · arm64</div></div>
+<div class="card" style="--c:var(--cyan);left:100px;top:620px;width:340px">
   <div class="ico"><i data-icon="cpu"></i></div>
   <div><h3>Control plane</h3><div class="sub">k3s server · SSD</div></div>
 </div>
-<div class="card" id="podpi" style="--c:var(--green);left:440px;top:530px;width:360px">
+<div class="card" id="podpi" style="--c:var(--green);left:100px;top:760px;width:340px">
   <div class="ico"><i data-icon="box"></i></div>
   <div><h3>demo-api</h3><div class="sub">réplica arm64</div></div>
 </div>
 
-<div class="zone" id="npc" style="--c:var(--cyan);left:860px;top:330px;width:550px;height:440px"><div class="zl">pc · amd64 · worker</div></div>
-<div class="card" id="podpc" style="--c:var(--green);left:885px;top:390px;width:245px;padding:16px">
+<div class="zone" id="npc" style="--c:var(--cyan);left:500px;top:560px;width:630px;height:470px"><div class="zl">pc · amd64 · worker</div></div>
+<div class="card" id="podpc" style="--c:var(--green);left:525px;top:620px;width:285px">
   <div class="ico"><i data-icon="box"></i></div>
   <div><h3>demo-api</h3><div class="sub">réplica amd64</div></div>
 </div>
-<div class="card" id="syn" style="--c:var(--blue);left:1145px;top:390px;width:245px;padding:16px">
+<div class="card" id="syn" style="--c:var(--blue);left:825px;top:620px;width:285px">
   <div class="ico"><i data-icon="radio"></i></div>
   <div><h3>Sintético</h3><div class="sub">2 req/s</div></div>
 </div>
-<div class="card" id="prom" style="--c:var(--orange);left:885px;top:530px;width:245px;padding:16px">
+<div class="card" id="prom" style="--c:var(--orange);left:525px;top:760px;width:285px">
   <div class="ico"><i data-icon="activity"></i></div>
   <div><h3>Prometheus</h3><div class="sub">SLOs · 30 días</div></div>
 </div>
-<div class="card" id="graf" style="--c:var(--orange);left:1145px;top:530px;width:245px;padding:16px">
+<div class="card" id="graf" style="--c:var(--orange);left:825px;top:760px;width:285px">
   <div class="ico"><i data-icon="layout-dashboard"></i></div>
   <div><h3>Grafana</h3><div class="sub">dashboards</div></div>
 </div>
-<div class="card" id="am" style="--c:var(--orange);left:885px;top:670px;width:245px;padding:16px">
+<div class="card" id="am" style="--c:var(--orange);left:525px;top:900px;width:285px">
   <div class="ico"><i data-icon="bell-ring"></i></div>
   <div><h3>Alertmanager</h3><div class="sub">rutas · silencios</div></div>
 </div>
 
-<!-- Personas -->
-<div class="card" id="user" style="--c:var(--purple);left:1480px;top:195px;width:280px">
-  <div class="ico"><i data-icon="user"></i></div>
-  <div><h3>Usuario</h3><div class="sub">navegador · curl</div></div>
-</div>
-<div class="card" id="tg" style="--c:var(--blue);left:1480px;top:670px;width:280px">
+<div class="card" id="tg" style="--c:var(--blue);left:525px;top:1110px;width:285px">
   <div class="ico"><i data-icon="smartphone"></i></div>
   <div><h3>Telegram</h3><div class="sub">alerta + runbook</div></div>
 </div>
 
-<div class="legend" style="top:828px">
-  <span style="--c:var(--purple)"><i></i>Git y artefactos</span>
+<div class="legend" style="top:1240px">
+  <span style="--c:var(--purple)"><i></i>Git</span>
   <span style="--c:var(--green)"><i></i>GitOps y app</span>
   <span style="--c:var(--blue)"><i></i>Tráfico y avisos</span>
   <span style="--c:var(--orange)"><i></i>Observabilidad</span>
@@ -81,12 +82,12 @@
 </div>
 
 <script>
-wire('hl:right', 'argo:left@0.35', { label: 'lee Git', color: '#10b981', labelColor: '#10b981' });
-wire('dsp:right', 'argo:left@0.75', { color: '#10b981' });
-wire('argo:bottom', 'npi:top@0.4', { label: 'sync' });
-wire('ghcr:right', 'npi:left@0.45', { label: 'pull', dashed: true });
-wire('user:left', 'tr:right', { label: 'HTTP' });
-wire('tr:bottom', 'npc:top@0.75');
+wire('hl:bottom', 'argo:top@0.2857', { label: 'lee Git', color: '#10b981', labelColor: '#10b981', at: [190, 335] });
+wire('dsp:bottom', 'argo:top@0.75', { color: '#10b981' });
+wire('argo:bottom', 'npi:top@0.5', { label: 'sync' });
+wire('ghcr:bottom', 'npc:top@0.39', { label: 'pull', dashed: true });
+wire('user:bottom', 'tr:top@0.75', { label: 'HTTP' });
+wire('tr:bottom', 'npc:top@0.8');
 wire('prom:bottom', 'am:top');
-wire('am:right', 'tg:left', { label: 'alerta', color: '#3b82f6', labelColor: '#60a5fa' });
+wire('am:bottom', 'tg:top', { label: 'alerta', color: '#3b82f6', labelColor: '#60a5fa' });
 </script>

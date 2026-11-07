@@ -308,7 +308,7 @@ data:
                 ]
               },
               "noValue": "Sin datos todavía",
-              "decimals": 0
+              "decimals": 1
             },
             "overrides": []
           },
@@ -442,12 +442,13 @@ data:
               "noValue": "Sin tráfico",
               "custom": {
                 "thresholdsStyle": {
-                  "mode": "line+area"
+                  "mode": "dashed"
                 },
                 "fillOpacity": 0,
                 "lineWidth": 2
               },
               "min": 0,
+              "softMax": 20,
               "decimals": 2
             },
             "overrides": []

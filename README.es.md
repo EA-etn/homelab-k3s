@@ -25,6 +25,8 @@ se ejecuta en el clúster**.
 
 <img src="docs/diagrams/es/01-architecture.svg" alt="Arquitectura: los repos de GitHub alimentan a ArgoCD, que sincroniza un clúster k3s en una Raspberry Pi y un PC; Prometheus, Grafana y Alertmanager corren en el PC y avisan por Telegram" width="100%">
 
+<sub><a href="https://raw.githubusercontent.com/EA-etn/homelab-k3s/main/docs/diagrams/es/01-architecture.png">🔍 Ver a tamaño completo</a></sub>
+
 ## Lo más destacado
 
 | | |

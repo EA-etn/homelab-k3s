@@ -25,6 +25,8 @@ on the cluster**.
 
 <img src="docs/diagrams/en/01-architecture.svg" alt="Architecture: GitHub repos feed ArgoCD, which syncs a k3s cluster on a Raspberry Pi and a PC; Prometheus, Grafana and Alertmanager run on the PC and alert to Telegram" width="100%">
 
+<sub><a href="https://raw.githubusercontent.com/EA-etn/homelab-k3s/main/docs/diagrams/en/01-architecture.png">🔍 View full size</a></sub>
+
 ## Highlights
 
 | | |
