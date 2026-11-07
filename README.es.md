@@ -23,11 +23,19 @@ Las aplicaciones se construyen en otro sitio. [DevSecOps Pipeline](https://githu
 prueba, escanea, firma y publica `demo-api` como imagen multi-arquitectura; este repo decide **qué
 se ejecuta en el clúster**.
 
-```
-devsecops-pipeline ──(imagen firmada + chart)──┐
-                                               ▼
-homelab-k3s ──(apps/)──► ArgoCD ──► k3s: Raspberry Pi 4 (arm64) + portátil (amd64)
-```
+<img src="docs/diagrams/es/01-architecture.svg" alt="Arquitectura: los repos de GitHub alimentan a ArgoCD, que sincroniza un clúster k3s en una Raspberry Pi y un PC; Prometheus, Grafana y Alertmanager corren en el PC y avisan por Telegram" width="100%">
+
+## Lo más destacado
+
+| | |
+|---|---|
+| ☸️ **Clúster híbrido** | Control plane k3s en una Raspberry Pi 4 (arm64, arranca desde SSD) + portátil como worker (amd64). La misma imagen multi-arquitectura corre en los dos |
+| 🔄 **GitOps** | App of Apps: un único `kubectl apply` manual, todo lo demás sale de `apps/`. Self-heal y prune activados |
+| 📊 **Observabilidad** | kube-prometheus-stack con dashboards como código, 30 días de retención y tráfico sintético a través del ingress |
+| 🎯 **SLOs** | 99,5 % de disponibilidad y 99 % de peticiones en menos de 100 ms, presupuesto de errores y alertas multi-ventana por burn rate ([docs/slo.md](docs/slo.md)) |
+| 🚨 **Respuesta a incidentes** | Alertas a Telegram con enlace al [runbook](docs/runbooks/README.md) de cada alerta, inhibición y silencios |
+| 🧪 **Alertas probadas** | Tests unitarios con `promtool` para cada alerta del SLO y comprobaciones con `amtool` de rutas y mensaje de Telegram, en el CI |
+| 🔐 **Sin secretos en Git** | La contraseña de Grafana y el token de Telegram viven en Secrets creados a mano; el repo es público |
 
 ## Estructura
 
@@ -40,6 +48,7 @@ homelab-k3s ──(apps/)──► ArgoCD ──► k3s: Raspberry Pi 4 (arm64) 
 | `tests/slo/` | Tests unitarios de las reglas y alertas del SLO (`promtool`, en el CI) |
 | `tests/alertmanager/` | Validación de la configuración de Alertmanager, sus rutas y el mensaje de Telegram (`amtool`, en el CI) |
 | `docs/inventory.md` | Hardware, red y software instalado |
+| `docs/diagrams/` | Diagramas de arquitectura como código (HTML → SVG animado, `docs/diagrams/src`) |
 | `docs/slo.md` | SLOs, política de presupuesto de errores y alertas por burn rate |
 | `docs/alerting.md` | Notificaciones de alertas a Telegram |
 | `docs/runbooks/` | Un runbook por alerta: qué significa y qué hacer |

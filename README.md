@@ -23,11 +23,19 @@ Applications are built elsewhere. [DevSecOps Pipeline](https://github.com/EA-etn
 tests, scans, signs and publishes `demo-api` as a multi-arch image; this repo decides **what runs
 on the cluster**.
 
-```
-devsecops-pipeline ──(signed image + chart)──┐
-                                             ▼
-homelab-k3s ──(apps/)──► ArgoCD ──► k3s: Raspberry Pi 4 (arm64) + laptop (amd64)
-```
+<img src="docs/diagrams/en/01-architecture.svg" alt="Architecture: GitHub repos feed ArgoCD, which syncs a k3s cluster on a Raspberry Pi and a PC; Prometheus, Grafana and Alertmanager run on the PC and alert to Telegram" width="100%">
+
+## Highlights
+
+| | |
+|---|---|
+| ☸️ **Hybrid cluster** | k3s control plane on a Raspberry Pi 4 (arm64, boots from SSD) + laptop worker (amd64). The same multi-arch image runs on both |
+| 🔄 **GitOps** | App of Apps: one manual `kubectl apply`, everything else comes from `apps/`. Self-heal and prune on |
+| 📊 **Observability** | kube-prometheus-stack with dashboards as code, 30-day retention, synthetic traffic through the ingress |
+| 🎯 **SLOs** | 99.5 % availability and 99 % of requests under 100 ms, error budget and multi-window burn-rate alerts ([docs/slo.md](docs/slo.md)) |
+| 🚨 **Incident response** | Alerts to Telegram with a link to the [runbook](docs/runbooks/README.md) for each alert, inhibition and silences |
+| 🧪 **Tested alerting** | `promtool` unit tests for every SLO alert and `amtool` checks for routing and the Telegram message, in CI |
+| 🔐 **No secrets in Git** | Grafana password and Telegram token live in Secrets created by hand; the repo is public |
 
 ## Repository layout
 
@@ -40,6 +48,7 @@ homelab-k3s ──(apps/)──► ArgoCD ──► k3s: Raspberry Pi 4 (arm64) 
 | `tests/slo/` | Unit tests for the SLO rules and alerts (`promtool`, run in CI) |
 | `tests/alertmanager/` | Alertmanager config, routing and Telegram message checks (`amtool`, run in CI) |
 | `docs/inventory.md` | Hardware, network and installed software |
+| `docs/diagrams/` | Architecture diagrams as code (HTML → animated SVG, `docs/diagrams/src`) |
 | `docs/slo.md` | SLOs, error budget policy and burn-rate alerts (Spanish) |
 | `docs/alerting.md` | Alert notifications to Telegram (Spanish) |
 | `docs/runbooks/` | One runbook per alert: what it means and what to do (Spanish) |

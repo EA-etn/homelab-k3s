@@ -8,3 +8,6 @@ node-token
 # Generado por tests/slo/run.sh
 tests/slo/rules.generated.yaml
 tests/alertmanager/*.generated.*
+
+# Dependencias de los diagramas
+node_modules/
