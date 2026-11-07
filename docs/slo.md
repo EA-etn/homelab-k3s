@@ -8,6 +8,8 @@ Qué prometemos sobre `demo-api`, cómo se mide y qué hacemos cuando no se cump
 | [`platform/monitoring/demo-api-slo-dashboard.yaml`](../platform/monitoring/demo-api-slo-dashboard.yaml) | Dashboard de Grafana **demo-api · SLOs** |
 | [`platform/monitoring/synthetic-traffic.yaml`](../platform/monitoring/synthetic-traffic.yaml) | Tráfico sintético para que el SLI siempre tenga datos |
 | [`tests/slo/`](../tests/slo) | Tests unitarios de las reglas con `promtool` (se ejecutan en el CI) |
+| [`docs/runbooks/`](runbooks/README.md) | Qué hacer cuando salta cada alerta |
+| [`docs/alerting.md`](alerting.md) | Cómo llegan las alertas a Telegram |
 
 ## Conceptos en 30 segundos
 

@@ -54,6 +54,7 @@ tests:
         exp_alerts:
           - exp_labels: {severity: critical, service: demo-api, slo: disponibilidad}
             exp_annotations:
+              runbook_url: https://github.com/EA-etn/homelab-k3s/blob/main/docs/runbooks/DemoApiErrorBudgetBurnFast.md
               summary: demo-api gasta muy rápido el presupuesto del SLO de disponibilidad
               description: >-
                 A este ritmo el presupuesto de errores de 30 días se agota en menos de 5 días
@@ -82,6 +83,7 @@ tests:
         exp_alerts:
           - exp_labels: {severity: critical, service: demo-api, slo: latencia}
             exp_annotations:
+              runbook_url: https://github.com/EA-etn/homelab-k3s/blob/main/docs/runbooks/DemoApiErrorBudgetBurnFast.md
               summary: demo-api gasta muy rápido el presupuesto del SLO de latencia
               description: >-
                 A este ritmo el presupuesto de errores de 30 días se agota en menos de 5 días
@@ -106,6 +108,7 @@ tests:
         exp_alerts:
           - exp_labels: {severity: warning, service: demo-api, slo: disponibilidad}
             exp_annotations:
+              runbook_url: https://github.com/EA-etn/homelab-k3s/blob/main/docs/runbooks/DemoApiErrorBudgetBurnSlow.md
               summary: demo-api gasta el presupuesto del SLO de disponibilidad más rápido de lo sostenible
               description: >-
                 A este ritmo el SLO de 30 días no se cumplirá (10 % del presupuesto en 1 día
