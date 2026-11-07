@@ -116,9 +116,9 @@ spec:
               {{ if eq .Status "resolved" }}✅ <b>RESUELTA</b>{{ else if eq .Labels.severity "critical" }}🔴 <b>CRÍTICA</b>{{ else }}🟠 <b>AVISO</b>{{ end }} · <code>{{ .Labels.alertname }}</code>{{ with .Labels.slo }} · SLO {{ . }}{{ end }}
               {{ with .Annotations.summary }}<b>{{ . | html }}</b>
               {{ end -}}
-              {{ with .Annotations.description }}{{ . | html }}
+              {{ with .Annotations.description }}{{ . | reReplaceAll " on cluster \\." "." | html }}
               {{ end -}}
-              {{ with .Labels.namespace }}📦 {{ . }}{{ with $a.Labels.pod }} · {{ . }}{{ end }}
+              {{ with .Labels.namespace }}📦 {{ . }}{{ with $a.Labels.deployment }} · {{ . }}{{ end }}{{ with $a.Labels.pod }}{{ if not (match "kube-state-metrics" .) }} · {{ . }}{{ end }}{{ end }}
               {{ end -}}
               {{ with .Annotations.runbook_url }}📖 <a href="{{ . }}">Runbook: qué hacer</a>
               {{ end }}
