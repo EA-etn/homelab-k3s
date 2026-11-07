@@ -43,7 +43,8 @@ spec:
             serviceMonitorSelectorNilUsesHelmValues: false
             podMonitorSelectorNilUsesHelmValues: false
             ruleSelectorNilUsesHelmValues: false
-            retention: 7d
+            # 30 días: la ventana de los SLOs. retentionSize evita llenar el disco
+            retention: 30d
             retentionSize: 8GB
             resources:
               requests: {cpu: 200m, memory: 512Mi}

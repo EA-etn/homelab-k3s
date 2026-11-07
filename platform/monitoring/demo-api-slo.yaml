@@ -1,0 +1,124 @@
+# SLOs de demo-api: SLIs, presupuesto de errores y alertas por "burn rate".
+# Explicación completa en docs/slo.md. Los tests de estas reglas están en tests/slo/.
+#
+#   SLO              SLI (qué cuenta como "petición buena")       Objetivo   Ventana
+#   disponibilidad   respuesta que no es 5xx                      99,5 %     30 días
+#   latencia         respuesta servida en menos de 100 ms         99 %       30 días
+#
+# Solo se cuentan peticiones de usuario: la app excluye /health y /metrics de sus métricas.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: demo-api-slo
+  namespace: monitoring
+spec:
+  groups:
+    # 1. SLIs: peticiones totales y peticiones "malas" por segundo (ventana de 5 minutos)
+    - name: demo-api-slo-sli
+      interval: 30s
+      rules:
+        - record: slo:objective:ratio
+          expr: vector(0.995)
+          labels: {service: demo-api, slo: disponibilidad}
+        - record: slo:objective:ratio
+          expr: vector(0.99)
+          labels: {service: demo-api, slo: latencia}
+
+        - record: slo:sli_total:rate5m
+          expr: sum(rate(http_requests_total{namespace="demo-api"}[5m]))
+          labels: {service: demo-api, slo: disponibilidad}
+        - record: slo:sli_errors:rate5m
+          # "or vector(0)": si nunca ha habido un 5xx la serie no existe, pero el error es 0
+          expr: sum(rate(http_requests_total{namespace="demo-api", status="5xx"}[5m])) or vector(0)
+          labels: {service: demo-api, slo: disponibilidad}
+
+        - record: slo:sli_total:rate5m
+          expr: sum(rate(http_request_duration_seconds_count{namespace="demo-api"}[5m]))
+          labels: {service: demo-api, slo: latencia}
+        - record: slo:sli_errors:rate5m
+          # Lentas = todas - las que caen en el bucket de 100 ms
+          expr: |
+            sum(rate(http_request_duration_seconds_count{namespace="demo-api"}[5m]))
+              - sum(rate(http_request_duration_seconds_bucket{namespace="demo-api", le="0.1"}[5m]))
+          labels: {service: demo-api, slo: latencia}
+
+    # 2. Ratio de errores en cada ventana que usan las alertas.
+    #    Se calcula sumando las tasas de 5 m, así pesa más cuando hay más tráfico.
+    - name: demo-api-slo-windows
+      interval: 30s
+      rules:
+        - record: slo:sli_error:ratio_rate5m
+          expr: slo:sli_errors:rate5m / slo:sli_total:rate5m
+        - record: slo:sli_error:ratio_rate30m
+          expr: sum_over_time(slo:sli_errors:rate5m[30m]) / sum_over_time(slo:sli_total:rate5m[30m])
+        - record: slo:sli_error:ratio_rate1h
+          expr: sum_over_time(slo:sli_errors:rate5m[1h]) / sum_over_time(slo:sli_total:rate5m[1h])
+        - record: slo:sli_error:ratio_rate2h
+          expr: sum_over_time(slo:sli_errors:rate5m[2h]) / sum_over_time(slo:sli_total:rate5m[2h])
+        - record: slo:sli_error:ratio_rate6h
+          expr: sum_over_time(slo:sli_errors:rate5m[6h]) / sum_over_time(slo:sli_total:rate5m[6h])
+        - record: slo:sli_error:ratio_rate1d
+          expr: sum_over_time(slo:sli_errors:rate5m[1d]) / sum_over_time(slo:sli_total:rate5m[1d])
+        - record: slo:sli_error:ratio_rate3d
+          expr: sum_over_time(slo:sli_errors:rate5m[3d]) / sum_over_time(slo:sli_total:rate5m[3d])
+
+    # 3. Ventana completa del SLO (30 días) y presupuesto de errores. Cada 5 minutos basta.
+    - name: demo-api-slo-budget
+      interval: 5m
+      rules:
+        - record: slo:sli_error:ratio_rate30d
+          expr: sum_over_time(slo:sli_errors:rate5m[30d]) / sum_over_time(slo:sli_total:rate5m[30d])
+        # 1 = presupuesto intacto · 0 = gastado · negativo = SLO incumplido
+        - record: slo:error_budget:remaining_ratio
+          expr: 1 - slo:sli_error:ratio_rate30d / on (service, slo) (1 - slo:objective:ratio)
+
+    # 4. Alertas multi-ventana y multi-burn-rate (Google SRE Workbook, cap. 5).
+    #    Burn rate 1 = gastar el presupuesto justo en 30 días; 14,4 = gastarlo en 2 días.
+    #    La ventana corta confirma que el problema sigue ocurriendo ahora.
+    - name: demo-api-slo-alerts
+      rules:
+        - alert: DemoApiErrorBudgetBurnFast
+          expr: |
+            (
+                  slo:sli_error:ratio_rate1h > on (service, slo) (14.4 * (1 - slo:objective:ratio))
+              and slo:sli_error:ratio_rate5m > on (service, slo) (14.4 * (1 - slo:objective:ratio))
+            )
+            or
+            (
+                  slo:sli_error:ratio_rate6h > on (service, slo) (6 * (1 - slo:objective:ratio))
+              and slo:sli_error:ratio_rate30m > on (service, slo) (6 * (1 - slo:objective:ratio))
+            )
+          for: 2m
+          labels: {severity: critical}
+          annotations:
+            summary: "demo-api gasta muy rápido el presupuesto del SLO de {{ $labels.slo }}"
+            description: >-
+              A este ritmo el presupuesto de errores de 30 días se agota en menos de 5 días
+              (2 % en 1 hora o 5 % en 6 horas). Hay que actuar ya.
+        - alert: DemoApiErrorBudgetBurnSlow
+          expr: |
+            (
+                  slo:sli_error:ratio_rate1d > on (service, slo) (3 * (1 - slo:objective:ratio))
+              and slo:sli_error:ratio_rate2h > on (service, slo) (3 * (1 - slo:objective:ratio))
+            )
+            or
+            (
+                  slo:sli_error:ratio_rate3d > on (service, slo) (1 * (1 - slo:objective:ratio))
+              and slo:sli_error:ratio_rate6h > on (service, slo) (1 * (1 - slo:objective:ratio))
+            )
+          for: 15m
+          labels: {severity: warning}
+          annotations:
+            summary: "demo-api gasta el presupuesto del SLO de {{ $labels.slo }} más rápido de lo sostenible"
+            description: >-
+              A este ritmo el SLO de 30 días no se cumplirá (10 % del presupuesto en 1 día
+              o 10 % en 3 días). No es urgente, pero hay que revisarlo en horario laboral.
+        - alert: DemoApiErrorBudgetExhausted
+          expr: slo:error_budget:remaining_ratio <= 0
+          for: 15m
+          labels: {severity: warning}
+          annotations:
+            summary: "demo-api ha agotado el presupuesto de errores de {{ $labels.slo }}"
+            description: >-
+              El SLO de los últimos 30 días está incumplido. Según la política de
+              presupuesto (docs/slo.md), se congelan los cambios no urgentes.
