@@ -63,3 +63,10 @@ jobs:
       # Configuración de Alertmanager: sintaxis, rutas de cada alerta y mensaje de Telegram
       - name: Tests de Alertmanager
         run: tests/alertmanager/run.sh
+
+      # Render real de kube-prometheus-stack con nuestros valores (como ArgoCD):
+      # detecta valores borrados o mal indentados que ninguna otra validación ve
+      - name: Render de monitoring
+        run: |
+          python3 -c "import yaml" 2>/dev/null || sudo apt-get install -y python3-yaml
+          tests/monitoring/run.sh

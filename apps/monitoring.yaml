@@ -124,6 +124,24 @@ spec:
               {{ end }}
               {{ end -}}
               {{ end }}
+
+        kube-state-metrics:
+          nodeSelector: {homelab/role: worker}
+
+        grafana:
+          nodeSelector: {homelab/role: worker}
+          # La contraseña de admin NO está en Git: vive en un Secret creado a mano
+          admin:
+            existingSecret: grafana-admin
+            userKey: admin-user
+            passwordKey: admin-password
+          ingress:
+            enabled: true
+            ingressClassName: traefik
+            hosts: [grafana.home.arpa]
+          sidecar:
+            dashboards:
+              searchNamespace: ALL
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
