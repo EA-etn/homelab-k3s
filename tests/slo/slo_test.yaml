@@ -1,0 +1,122 @@
+# Tests de las reglas del SLO (platform/monitoring/demo-api-slo.yaml).
+# Cada escenario simula series de métricas de la app y comprueba qué alertas saltan.
+# Ejecutar: tests/slo/run.sh
+rule_files:
+  - rules.generated.yaml
+
+evaluation_interval: 30s
+
+tests:
+  # 1. Todo bien: 10 peticiones/s, ningún error y todas rápidas → sin alertas, presupuesto intacto
+  - name: sano
+    interval: 1m
+    input_series:
+      - series: 'http_requests_total{namespace="demo-api", handler="/info", method="GET", status="2xx"}'
+        values: '0+600x300'
+      - series: 'http_request_duration_seconds_count{namespace="demo-api", handler="/info", method="GET"}'
+        values: '0+600x300'
+      - series: 'http_request_duration_seconds_bucket{namespace="demo-api", handler="/info", method="GET", le="0.1"}'
+        values: '0+600x300'
+    alert_rule_test:
+      - {eval_time: 4h, alertname: DemoApiErrorBudgetBurnFast, exp_alerts: []}
+      - {eval_time: 4h, alertname: DemoApiErrorBudgetBurnSlow, exp_alerts: []}
+      - {eval_time: 4h, alertname: DemoApiErrorBudgetExhausted, exp_alerts: []}
+    promql_expr_test:
+      - expr: slo:error_budget:remaining_ratio{slo="disponibilidad"}
+        eval_time: 4h
+        exp_samples:
+          - {labels: 'slo:error_budget:remaining_ratio{service="demo-api", slo="disponibilidad"}', value: 1}
+      # Panel del dashboard: presupuesto en minutos de caída total (0,5 % y 1 % de 30 días)
+      # (round: evita falsos fallos por decimales de coma flotante)
+      - expr: round(clamp_min(slo:error_budget:remaining_ratio * on (service, slo) (1 - slo:objective:ratio) * 30 * 24 * 60, 0), 0.001)
+        eval_time: 4h
+        exp_samples:
+          - {labels: '{service="demo-api", slo="disponibilidad"}', value: 216}
+          - {labels: '{service="demo-api", slo="latencia"}', value: 432}
+
+  # 2. Caída parcial: el 20 % de las peticiones dan 5xx (burn rate 40) → alerta crítica rápida
+  - name: errores-5xx-quema-rapida
+    interval: 1m
+    input_series:
+      - series: 'http_requests_total{namespace="demo-api", handler="/info", method="GET", status="2xx"}'
+        values: '0+480x120'
+      - series: 'http_requests_total{namespace="demo-api", handler="/info", method="GET", status="5xx"}'
+        values: '0+120x120'
+      - series: 'http_request_duration_seconds_count{namespace="demo-api", handler="/info", method="GET"}'
+        values: '0+600x120'
+      - series: 'http_request_duration_seconds_bucket{namespace="demo-api", handler="/info", method="GET", le="0.1"}'
+        values: '0+600x120'
+    alert_rule_test:
+      # Al principio no hay datos suficientes: aún no salta
+      - {eval_time: 2m, alertname: DemoApiErrorBudgetBurnFast, exp_alerts: []}
+      - eval_time: 30m
+        alertname: DemoApiErrorBudgetBurnFast
+        exp_alerts:
+          - exp_labels: {severity: critical, service: demo-api, slo: disponibilidad}
+            exp_annotations:
+              summary: demo-api gasta muy rápido el presupuesto del SLO de disponibilidad
+              description: >-
+                A este ritmo el presupuesto de errores de 30 días se agota en menos de 5 días
+                (2 % en 1 hora o 5 % en 6 horas). Hay que actuar ya.
+      # Solo alerta el SLO de disponibilidad: el de latencia sigue bien
+    promql_expr_test:
+      # Panel del dashboard: 20 % de errores / 0,5 % permitido = burn rate 40
+      - expr: round(slo:sli_error:ratio_rate1h{slo="disponibilidad"} / on (service, slo) (1 - slo:objective:ratio), 0.001)
+        eval_time: 90m
+        exp_samples:
+          - {labels: '{service="demo-api", slo="disponibilidad"}', value: 40}
+
+  # 3. La app se vuelve lenta: todas las respuestas tardan más de 100 ms → alerta del SLO de latencia
+  - name: latencia-quema-rapida
+    interval: 1m
+    input_series:
+      - series: 'http_requests_total{namespace="demo-api", handler="/info", method="GET", status="2xx"}'
+        values: '0+600x120'
+      - series: 'http_request_duration_seconds_count{namespace="demo-api", handler="/info", method="GET"}'
+        values: '0+600x120'
+      - series: 'http_request_duration_seconds_bucket{namespace="demo-api", handler="/info", method="GET", le="0.1"}'
+        values: '0+0x120'
+    alert_rule_test:
+      - eval_time: 30m
+        alertname: DemoApiErrorBudgetBurnFast
+        exp_alerts:
+          - exp_labels: {severity: critical, service: demo-api, slo: latencia}
+            exp_annotations:
+              summary: demo-api gasta muy rápido el presupuesto del SLO de latencia
+              description: >-
+                A este ritmo el presupuesto de errores de 30 días se agota en menos de 5 días
+                (2 % en 1 hora o 5 % en 6 horas). Hay que actuar ya.
+
+  # 4. Degradación leve: 2 % de errores (burn rate 4). No es urgente → solo la alerta lenta
+  - name: errores-quema-lenta
+    interval: 1m
+    input_series:
+      - series: 'http_requests_total{namespace="demo-api", handler="/info", method="GET", status="2xx"}'
+        values: '0+588x300'
+      - series: 'http_requests_total{namespace="demo-api", handler="/info", method="GET", status="5xx"}'
+        values: '0+12x300'
+      - series: 'http_request_duration_seconds_count{namespace="demo-api", handler="/info", method="GET"}'
+        values: '0+600x300'
+      - series: 'http_request_duration_seconds_bucket{namespace="demo-api", handler="/info", method="GET", le="0.1"}'
+        values: '0+600x300'
+    alert_rule_test:
+      - {eval_time: 3h, alertname: DemoApiErrorBudgetBurnFast, exp_alerts: []}
+      - eval_time: 3h
+        alertname: DemoApiErrorBudgetBurnSlow
+        exp_alerts:
+          - exp_labels: {severity: warning, service: demo-api, slo: disponibilidad}
+            exp_annotations:
+              summary: demo-api gasta el presupuesto del SLO de disponibilidad más rápido de lo sostenible
+              description: >-
+                A este ritmo el SLO de 30 días no se cumplirá (10 % del presupuesto en 1 día
+                o 10 % en 3 días). No es urgente, pero hay que revisarlo en horario laboral.
+
+  # 5. Sin tráfico de usuarios (sin series) → ninguna alerta falsa
+  - name: sin-trafico
+    interval: 1m
+    input_series:
+      - series: 'up{namespace="demo-api"}'
+        values: '1x120'
+    alert_rule_test:
+      - {eval_time: 1h, alertname: DemoApiErrorBudgetBurnFast, exp_alerts: []}
+      - {eval_time: 1h, alertname: DemoApiErrorBudgetBurnSlow, exp_alerts: []}

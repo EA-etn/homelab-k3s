@@ -1,0 +1,42 @@
+# Tráfico sintético hacia demo-api: 2 peticiones/s a / y /info, entrando por Traefik
+# como un usuario real (Host: demo-api.home.arpa).
+# Sin tráfico, el SLI no tiene datos: la app no cuenta /health ni /metrics.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: synthetic-traffic
+  namespace: monitoring
+  labels: {app.kubernetes.io/name: synthetic-traffic}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app.kubernetes.io/name: synthetic-traffic}
+  template:
+    metadata:
+      labels: {app.kubernetes.io/name: synthetic-traffic}
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 100
+        runAsGroup: 101
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: curl
+          image: curlimages/curl:8.11.1
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              while true; do
+                for path in / /info; do
+                  curl -s -o /dev/null -m 2 -H "Host: demo-api.home.arpa" "http://traefik.kube-system.svc.cluster.local${path}"
+                done
+                sleep 1
+              done
+          resources:
+            requests: {cpu: 5m, memory: 8Mi}
+            limits: {memory: 32Mi}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: [ALL]}

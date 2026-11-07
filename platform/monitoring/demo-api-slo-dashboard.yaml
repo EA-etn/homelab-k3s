@@ -1,0 +1,613 @@
+# Dashboard de los SLOs de demo-api (reglas en demo-api-slo.yaml, explicación en docs/slo.md).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dashboard-demo-api-slo
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+data:
+  demo-api-slo.json: |
+    {
+      "uid": "demo-api-slo",
+      "title": "demo-api · SLOs",
+      "tags": [
+        "homelab",
+        "demo-api",
+        "slo"
+      ],
+      "timezone": "browser",
+      "schemaVersion": 39,
+      "time": {
+        "from": "now-24h",
+        "to": "now"
+      },
+      "refresh": "1m",
+      "panels": [
+        {
+          "id": 1,
+          "type": "stat",
+          "title": "Disponibilidad · 30 días",
+          "description": "Peticiones sin 5xx en los últimos 30 días. Objetivo: 99,5 %",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "x": 0,
+            "y": 0,
+            "w": 6,
+            "h": 5
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percentunit",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "red",
+                    "value": null
+                  },
+                  {
+                    "color": "green",
+                    "value": 0.995
+                  }
+                ]
+              },
+              "noValue": "Sin datos todavía",
+              "decimals": 3
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "1 - slo:sli_error:ratio_rate30d{slo=\"disponibilidad\"}",
+              "legendFormat": "SLI"
+            }
+          ],
+          "options": {
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "colorMode": "background",
+            "graphMode": "none",
+            "textMode": "value"
+          }
+        },
+        {
+          "id": 2,
+          "type": "gauge",
+          "title": "Presupuesto restante · disponibilidad",
+          "description": "100 % = intacto · 0 % = gastado (el SLO se incumple)",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
+            "h": 5
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percentunit",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "red",
+                    "value": null
+                  },
+                  {
+                    "color": "orange",
+                    "value": 0.25
+                  },
+                  {
+                    "color": "green",
+                    "value": 0.5
+                  }
+                ]
+              },
+              "noValue": "Sin datos todavía",
+              "min": 0,
+              "max": 1,
+              "decimals": 1
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "slo:error_budget:remaining_ratio{slo=\"disponibilidad\"}",
+              "legendFormat": "presupuesto"
+            }
+          ],
+          "options": {
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showThresholdMarkers": true
+          }
+        },
+        {
+          "id": 3,
+          "type": "stat",
+          "title": "Latencia < 100 ms · 30 días",
+          "description": "Peticiones servidas en menos de 100 ms en los últimos 30 días. Objetivo: 99 %",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "x": 12,
+            "y": 0,
+            "w": 6,
+            "h": 5
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percentunit",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "red",
+                    "value": null
+                  },
+                  {
+                    "color": "green",
+                    "value": 0.99
+                  }
+                ]
+              },
+              "noValue": "Sin datos todavía",
+              "decimals": 3
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "1 - slo:sli_error:ratio_rate30d{slo=\"latencia\"}",
+              "legendFormat": "SLI"
+            }
+          ],
+          "options": {
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "colorMode": "background",
+            "graphMode": "none",
+            "textMode": "value"
+          }
+        },
+        {
+          "id": 4,
+          "type": "gauge",
+          "title": "Presupuesto restante · latencia",
+          "description": "100 % = intacto · 0 % = gastado (el SLO se incumple)",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "x": 18,
+            "y": 0,
+            "w": 6,
+            "h": 5
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percentunit",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "red",
+                    "value": null
+                  },
+                  {
+                    "color": "orange",
+                    "value": 0.25
+                  },
+                  {
+                    "color": "green",
+                    "value": 0.5
+                  }
+                ]
+              },
+              "noValue": "Sin datos todavía",
+              "min": 0,
+              "max": 1,
+              "decimals": 1
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "slo:error_budget:remaining_ratio{slo=\"latencia\"}",
+              "legendFormat": "presupuesto"
+            }
+          ],
+          "options": {
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showThresholdMarkers": true
+          }
+        },
+        {
+          "id": 5,
+          "type": "stat",
+          "title": "Presupuesto restante en minutos de caída total",
+          "description": "Cuántos minutos más podría estar caída la app del todo sin incumplir el SLO (suponiendo tráfico constante). 0,5 % de 30 días = 216 min",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "x": 0,
+            "y": 5,
+            "w": 12,
+            "h": 4
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "m",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "red",
+                    "value": null
+                  },
+                  {
+                    "color": "orange",
+                    "value": 30
+                  },
+                  {
+                    "color": "green",
+                    "value": 100
+                  }
+                ]
+              },
+              "noValue": "Sin datos todavía",
+              "decimals": 0
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "clamp_min(slo:error_budget:remaining_ratio * on (service, slo) (1 - slo:objective:ratio) * 30 * 24 * 60, 0)",
+              "legendFormat": "{{slo}}"
+            }
+          ],
+          "options": {
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "colorMode": "background",
+            "graphMode": "none",
+            "textMode": "value_and_name"
+          }
+        },
+        {
+          "id": 6,
+          "type": "stat",
+          "title": "Burn rate ahora (última hora)",
+          "description": "Velocidad de gasto del presupuesto. 1 = se gasta justo en 30 días · 14,4 = en 2 días (alerta crítica)",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "x": 12,
+            "y": 5,
+            "w": 12,
+            "h": 4
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "x",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "orange",
+                    "value": 1
+                  },
+                  {
+                    "color": "red",
+                    "value": 6
+                  }
+                ]
+              },
+              "noValue": "Sin tráfico",
+              "decimals": 2
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "slo:sli_error:ratio_rate1h / on (service, slo) (1 - slo:objective:ratio)",
+              "legendFormat": "{{slo}}"
+            }
+          ],
+          "options": {
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "colorMode": "background",
+            "graphMode": "none",
+            "textMode": "value_and_name"
+          }
+        },
+        {
+          "id": 7,
+          "type": "timeseries",
+          "title": "Burn rate (1 h y 6 h)",
+          "description": "Las líneas marcan los umbrales de alerta: 14,4 (1 h) y 6 (6 h) críticos; 1 = ritmo sostenible",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "x": 0,
+            "y": 9,
+            "w": 24,
+            "h": 8
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "x",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "orange",
+                    "value": 1
+                  },
+                  {
+                    "color": "red",
+                    "value": 6
+                  },
+                  {
+                    "color": "dark-red",
+                    "value": 14.4
+                  }
+                ]
+              },
+              "noValue": "Sin tráfico",
+              "custom": {
+                "thresholdsStyle": {
+                  "mode": "line+area"
+                },
+                "fillOpacity": 0,
+                "lineWidth": 2
+              },
+              "min": 0,
+              "decimals": 2
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "slo:sli_error:ratio_rate1h / on (service, slo) (1 - slo:objective:ratio)",
+              "legendFormat": "{{slo}} · 1 h"
+            },
+            {
+              "refId": "B",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "slo:sli_error:ratio_rate6h / on (service, slo) (1 - slo:objective:ratio)",
+              "legendFormat": "{{slo}} · 6 h"
+            }
+          ],
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "placement": "bottom"
+            },
+            "tooltip": {
+              "mode": "multi"
+            }
+          }
+        },
+        {
+          "id": 8,
+          "type": "timeseries",
+          "title": "Presupuesto restante",
+          "description": "Evolución del presupuesto de errores de 30 días",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "x": 0,
+            "y": 17,
+            "w": 12,
+            "h": 8
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percentunit",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "red",
+                    "value": null
+                  },
+                  {
+                    "color": "orange",
+                    "value": 0.25
+                  },
+                  {
+                    "color": "green",
+                    "value": 0.5
+                  }
+                ]
+              },
+              "noValue": "Sin datos todavía",
+              "custom": {
+                "fillOpacity": 10,
+                "lineWidth": 2
+              },
+              "max": 1
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "slo:error_budget:remaining_ratio",
+              "legendFormat": "{{slo}}"
+            }
+          ],
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "placement": "bottom"
+            },
+            "tooltip": {
+              "mode": "multi"
+            }
+          }
+        },
+        {
+          "id": 9,
+          "type": "timeseries",
+          "title": "SLI en los últimos 5 minutos",
+          "description": "Porcentaje de peticiones buenas en cada momento",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "x": 12,
+            "y": 17,
+            "w": 12,
+            "h": 8
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percentunit",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "red",
+                    "value": null
+                  },
+                  {
+                    "color": "green",
+                    "value": 0.99
+                  }
+                ]
+              },
+              "noValue": "Sin tráfico",
+              "custom": {
+                "fillOpacity": 0,
+                "lineWidth": 2
+              },
+              "max": 1,
+              "decimals": 2
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "1 - slo:sli_error:ratio_rate5m",
+              "legendFormat": "{{slo}}"
+            }
+          ],
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "placement": "bottom"
+            },
+            "tooltip": {
+              "mode": "multi"
+            }
+          }
+        }
+      ]
+    }

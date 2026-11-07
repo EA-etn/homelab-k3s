@@ -10,6 +10,7 @@ permissions:
 
 env:
   KUBECONFORM_VERSION: v0.8.0
+  PROMETHEUS_VERSION: 3.16.0
 
 jobs:
   validate:
@@ -32,4 +33,18 @@ jobs:
             bootstrap/ apps/ platform/
 
       - name: shellcheck
-        run: shellcheck bootstrap/*.sh
+        run: shellcheck bootstrap/*.sh tests/slo/run.sh
+
+      # promtool viene con Prometheus; se verifica su checksum antes de usarlo
+      - name: Instalar promtool
+        run: |
+          base="https://github.com/prometheus/prometheus/releases/download/v${PROMETHEUS_VERSION}"
+          file="prometheus-${PROMETHEUS_VERSION}.linux-amd64.tar.gz"
+          curl -sSLO "${base}/${file}"
+          curl -sSL "${base}/sha256sums.txt" | grep " ${file}$" | sha256sum -c -
+          tar -xzf "${file}"
+          sudo install "prometheus-${PROMETHEUS_VERSION}.linux-amd64/promtool" /usr/local/bin/
+
+      # Tests unitarios de las reglas y alertas del SLO (series simuladas, sin clúster)
+      - name: Tests de las reglas del SLO
+        run: tests/slo/run.sh

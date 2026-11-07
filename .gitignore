@@ -4,3 +4,6 @@ kubeconfig*
 node-token
 *.token
 .env
+
+# Generado por tests/slo/run.sh
+tests/slo/rules.generated.yaml
