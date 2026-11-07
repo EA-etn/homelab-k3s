@@ -16,6 +16,7 @@ spec:
           for: 2m
           labels: {severity: critical}
           annotations:
+            runbook_url: https://github.com/EA-etn/homelab-k3s/blob/main/docs/runbooks/DemoApiDown.md
             summary: demo-api no responde
             description: Ninguna réplica de demo-api responde a Prometheus desde hace 2 minutos.
         - alert: DemoApiSingleNode
@@ -23,5 +24,6 @@ spec:
           for: 15m
           labels: {severity: info}
           annotations:
+            runbook_url: https://github.com/EA-etn/homelab-k3s/blob/main/docs/runbooks/DemoApiSingleNode.md
             summary: Todas las réplicas de demo-api están en un solo nodo
             description: Si ese nodo cae, demo-api se queda sin servicio hasta que se reprogramen los pods.

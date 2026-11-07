@@ -91,6 +91,7 @@ spec:
           for: 2m
           labels: {severity: critical}
           annotations:
+            runbook_url: https://github.com/EA-etn/homelab-k3s/blob/main/docs/runbooks/DemoApiErrorBudgetBurnFast.md
             summary: "demo-api gasta muy rápido el presupuesto del SLO de {{ $labels.slo }}"
             description: >-
               A este ritmo el presupuesto de errores de 30 días se agota en menos de 5 días
@@ -109,6 +110,7 @@ spec:
           for: 15m
           labels: {severity: warning}
           annotations:
+            runbook_url: https://github.com/EA-etn/homelab-k3s/blob/main/docs/runbooks/DemoApiErrorBudgetBurnSlow.md
             summary: "demo-api gasta el presupuesto del SLO de {{ $labels.slo }} más rápido de lo sostenible"
             description: >-
               A este ritmo el SLO de 30 días no se cumplirá (10 % del presupuesto en 1 día
@@ -118,6 +120,7 @@ spec:
           for: 15m
           labels: {severity: warning}
           annotations:
+            runbook_url: https://github.com/EA-etn/homelab-k3s/blob/main/docs/runbooks/DemoApiErrorBudgetExhausted.md
             summary: "demo-api ha agotado el presupuesto de errores de {{ $labels.slo }}"
             description: >-
               El SLO de los últimos 30 días está incumplido. Según la política de

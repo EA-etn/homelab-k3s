@@ -38,8 +38,11 @@ homelab-k3s ──(apps/)──► ArgoCD ──► k3s: Raspberry Pi 4 (arm64) 
 | `apps/` | Una Application de ArgoCD por carga de trabajo. Añade un archivo aquí para desplegar algo |
 | `platform/monitoring/` | Dashboards de Grafana, alertas de Prometheus y SLOs como código |
 | `tests/slo/` | Tests unitarios de las reglas y alertas del SLO (`promtool`, en el CI) |
+| `tests/alertmanager/` | Validación de la configuración de Alertmanager, sus rutas y el mensaje de Telegram (`amtool`, en el CI) |
 | `docs/inventory.md` | Hardware, red y software instalado |
 | `docs/slo.md` | SLOs, política de presupuesto de errores y alertas por burn rate |
+| `docs/alerting.md` | Notificaciones de alertas a Telegram |
+| `docs/runbooks/` | Un runbook por alerta: qué significa y qué hacer |
 
 ## Puesta en marcha
 
@@ -63,6 +66,7 @@ kubectl -n argocd get applications
 - [x] `demo-api` desplegada en los dos nodos (una réplica por arquitectura)
 - [x] Observabilidad: Prometheus, Grafana y alertas de `demo-api`
 - [x] SLOs de `demo-api`: 99,5 % de disponibilidad y 99 % en menos de 100 ms, alertas multi-ventana por burn rate con tests
+- [x] Alertas a Telegram con enlace al runbook, rutas probadas en el CI
 - [ ] Secretos de OpenBao gestionados como código
 - [ ] Limpiar las cargas de prueba antiguas
 

@@ -7,3 +7,4 @@ node-token
 
 # Generado por tests/slo/run.sh
 tests/slo/rules.generated.yaml
+tests/alertmanager/*.generated.*

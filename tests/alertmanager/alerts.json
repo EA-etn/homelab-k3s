@@ -1,0 +1,23 @@
+{
+  "Status": "firing",
+  "Alerts": [
+    {
+      "Status": "firing",
+      "Labels": {"alertname": "DemoApiErrorBudgetBurnFast", "severity": "critical", "service": "demo-api", "slo": "disponibilidad"},
+      "Annotations": {
+        "summary": "demo-api gasta muy rápido el presupuesto del SLO de disponibilidad",
+        "description": "A este ritmo el presupuesto de errores de 30 días se agota en menos de 5 días (2 % en 1 hora o 5 % en 6 horas). Hay que actuar ya.",
+        "runbook_url": "https://github.com/EA-etn/homelab-k3s/blob/main/docs/runbooks/DemoApiErrorBudgetBurnFast.md"
+      }
+    },
+    {
+      "Status": "resolved",
+      "Labels": {"alertname": "KubePodCrashLooping", "severity": "warning", "namespace": "demo-api", "pod": "demo-api-5d6468f847-mchjc"},
+      "Annotations": {
+        "description": "Pod demo-api/demo-api-5d6468f847-mchjc (api) is in waiting state (reason: \"CrashLoopBackOff\") & <escapado>.",
+        "summary": "Pod is crash looping.",
+        "runbook_url": "https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubepodcrashlooping"
+      }
+    }
+  ]
+}
