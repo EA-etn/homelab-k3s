@@ -1,0 +1,57 @@
+# Descheduler: recoloca pods que incumplen las reglas de reparto.
+# Kubernetes solo decide dónde va un pod al crearlo y nunca mueve los que ya funcionan. Si el
+# portátil se suspende, su pod de demo-api se recrea en la Pi y, al volver, se queda allí. El
+# Descheduler lo detecta, desaloja un pod y el planificador lo crea de nuevo en el nodo correcto.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: descheduler
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io/foreground
+spec:
+  project: default
+  source:
+    repoURL: https://kubernetes-sigs.github.io/descheduler/
+    chart: descheduler
+    targetRevision: 0.37.0
+    helm:
+      releaseName: descheduler
+      valuesObject:
+        # Un proceso que revisa el clúster cada 5 minutos (en vez de un CronJob cada 2)
+        kind: Deployment
+        deschedulingInterval: 5m
+        resources:
+          requests: {cpu: 20m, memory: 64Mi}
+          limits: {memory: 256Mi}
+        deschedulerPolicy:
+          profiles:
+            - name: reparto-entre-nodos
+              pluginConfig:
+                - name: DefaultEvictor
+                  args:
+                    # Solo desaloja si el pod cabe en otro nodo
+                    nodeFit: true
+                    # Nunca deja una app con menos de 2 réplicas
+                    minReplicas: 2
+                    # demo-api usa un emptyDir para /tmp: se puede desalojar sin perder nada
+                    podProtections:
+                      defaultDisabled: ["PodsWithLocalStorage"]
+                - name: RemovePodsViolatingTopologySpreadConstraint
+                  args:
+                    # Solo las reglas obligatorias (DoNotSchedule), y solo en demo-api
+                    constraints: [DoNotSchedule]
+                    namespaces:
+                      include: [demo-api]
+              plugins:
+                balance:
+                  enabled: [RemovePodsViolatingTopologySpreadConstraint]
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: descheduler
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

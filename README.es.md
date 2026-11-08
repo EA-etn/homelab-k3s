@@ -78,6 +78,7 @@ kubectl -n argocd get applications
 - [x] Observabilidad: Prometheus, Grafana y alertas de `demo-api`
 - [x] SLOs de `demo-api`: 99,5 % de disponibilidad y 99 % en menos de 100 ms, alertas multi-ventana por burn rate con tests
 - [x] Alertas a Telegram con enlace al runbook, rutas probadas en el CI
+- [x] Descheduler: reequilibra `demo-api` entre nodos cuando un nodo vuelve (p. ej. tras suspenderse el portátil)
 - [ ] Secretos de OpenBao gestionados como código
 - [ ] Limpiar las cargas de prueba antiguas
 
