@@ -33,6 +33,13 @@ jobs:
             -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' \
             bootstrap/ apps/ platform/
 
+      # ArgoCD rechaza repos con enlaces simbólicos que apuntan fuera del repo
+      # ("out-of-bounds symlinks") y deja de sincronizar todas las apps que lo leen
+      - name: Sin enlaces simbólicos
+        run: |
+          links=$(git ls-files -s | awk '$1 == "120000" {print $4}')
+          if [ -n "$links" ]; then echo "Enlaces simbólicos en el repo:"; echo "$links"; exit 1; fi
+
       - name: shellcheck
         run: shellcheck bootstrap/*.sh tests/*/run.sh
 
