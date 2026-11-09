@@ -11,4 +11,4 @@ tests/alertmanager/*.generated.*
 tests/monitoring/*.generated.yaml
 
 # Dependencias de los diagramas
-node_modules/
+node_modules
