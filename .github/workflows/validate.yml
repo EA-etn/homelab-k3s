@@ -41,7 +41,7 @@ jobs:
           if [ -n "$links" ]; then echo "Enlaces simbólicos en el repo:"; echo "$links"; exit 1; fi
 
       - name: shellcheck
-        run: shellcheck bootstrap/*.sh tests/*/run.sh
+        run: shellcheck bootstrap/*.sh tests/*/run.sh .githooks/pre-commit
 
       # promtool viene con Prometheus; se verifica su checksum antes de usarlo
       - name: Instalar promtool

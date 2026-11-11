@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Impide hacer commit de un vault de Ansible sin cifrar.
+# Se activa una vez por clon:  git config core.hooksPath .githooks
+set -euo pipefail
+
+status=0
+for f in $(git diff --cached --name-only --diff-filter=ACM -- 'ansible/**/vault.yml'); do
+  # Se mira la versión que va a entrar en el commit, no la del disco.
+  # El "$" va en comillas simples a propósito: es el texto literal con que empieza un vault cifrado.
+  # shellcheck disable=SC2016
+  if ! git show ":$f" | head -1 | grep -q '^\$ANSIBLE_VAULT;'; then
+    echo "✋ $f NO está cifrado. Cífralo antes del commit:" >&2
+    echo "   ansible-vault encrypt $f" >&2
+    status=1
+  fi
+done
+exit "$status"

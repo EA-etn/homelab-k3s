@@ -37,12 +37,37 @@ Los secretos van en `ansible/group_vars/all/vault.yml`, **cifrado** con `ansible
 sube a Git cifrado: sin la contraseña del vault es ilegible. La contraseña la guardas tú, en tu
 gestor de contraseñas, y **nunca** va en Git ni en un chat.
 
-El CI comprueba en cada PR que el vault está cifrado: si alguien lo sube en claro, el check falla.
-Aun así, ese secreto ya se habría publicado y habría que cambiarlo. Por eso, antes de cada commit:
+### La contraseña del vault
+
+El archivo cifrado es público para siempre: alguien podría intentar adivinar la contraseña probando
+millones de combinaciones en su ordenador, sin límite de intentos. Por eso tiene que ser **larga y
+aleatoria**:
+
+- 5 o 6 palabras al azar (por ejemplo, generadas por tu gestor de contraseñas), o
+- 20 caracteres o más, generados al azar.
+
+Nunca una contraseña que uses en otro sitio. Guárdala en tu gestor de contraseñas: sin ella no se
+puede reconstruir el homelab.
+
+### Dos controles para no subirlo en claro
+
+| Control | Cuándo actúa |
+|---|---|
+| **Hook de Git** (`.githooks/pre-commit`) | **Antes** del commit, en tu PC: si el vault no está cifrado, el commit no se hace |
+| **CI** (job Ansible, paso "El vault está cifrado") | En el PR. Si salta, el secreto ya está en GitHub y hay que cambiarlo |
+
+El hook se activa una vez en cada clon del repo:
 
 ```bash
-head -1 ansible/group_vars/all/vault.yml   # debe decir $ANSIBLE_VAULT;1.1;AES256
+git config core.hooksPath .githooks
 ```
+
+### Si se filtra la contraseña del vault
+
+Git guarda todas las versiones del archivo, así que cambiar la contraseña (`ansible-vault rekey`)
+**no basta**: con la vieja se pueden descifrar las versiones antiguas. Hay que cambiar **los secretos
+de dentro**: crear un token nuevo del bot en @BotFather, un check nuevo en healthchecks.io, otra
+contraseña de Grafana… y actualizar el vault.
 
 ## Puesta en marcha (en el PC)
 
@@ -61,7 +86,13 @@ ssh-copy-id antonio@10.9.8.100   # tu usuario de la Pi
 
 Si tu usuario en la Pi no es `antonio`, cámbialo en [`ansible/inventory.yml`](../ansible/inventory.yml).
 
-**3. Crear el vault:**
+**3. Activar el control del vault** (una vez):
+
+```bash
+git config core.hooksPath .githooks
+```
+
+**4. Crear el vault** (con una contraseña larga: ver "La contraseña del vault"):
 
 ```bash
 cd ansible
