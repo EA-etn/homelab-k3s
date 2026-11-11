@@ -1,0 +1,27 @@
+# Crea (o actualiza) los Secrets del clúster a partir del vault.
+# El manifiesto se pasa por la entrada estándar: el secreto nunca aparece en la línea de comandos.
+
+- name: Crear los namespaces de los Secrets
+  ansible.builtin.command:
+    cmd: k3s kubectl apply -f -
+    stdin: |
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: {{ item }}
+  loop: "{{ cluster_secrets_list | map(attribute='namespace') | unique }}"
+  register: cluster_secrets_ns
+  changed_when: "'unchanged' not in cluster_secrets_ns.stdout"
+
+- name: Crear o actualizar cada Secret
+  ansible.builtin.command:
+    cmd: k3s kubectl apply -f -
+    stdin: "{{ {'apiVersion': 'v1', 'kind': 'Secret', 'type': 'Opaque',
+                'metadata': {'name': item.name, 'namespace': item.namespace},
+                'stringData': item.data} | to_json }}"
+  loop: "{{ cluster_secrets_list }}"
+  loop_control:
+    label: "{{ item.namespace }}/{{ item.name }}"
+  register: cluster_secrets_apply
+  changed_when: "'unchanged' not in cluster_secrets_apply.stdout"
+  no_log: true

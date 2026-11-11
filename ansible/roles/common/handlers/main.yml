@@ -1,0 +1,9 @@
+- name: Reiniciar la máquina
+  ansible.builtin.reboot:
+    msg: "Reinicio de Ansible para activar los cgroups de memoria"
+    reboot_timeout: 600
+
+# HUP recarga la configuración sin cerrar la sesión gráfica
+- name: Recargar systemd-logind
+  ansible.builtin.command: systemctl kill -s HUP systemd-logind
+  changed_when: true

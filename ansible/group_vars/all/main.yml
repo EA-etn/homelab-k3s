@@ -1,0 +1,14 @@
+# Versiones y direcciones del homelab. Cambiar una versión aquí y ejecutar el playbook la actualiza.
+k3s_version: v1.36.4+k3s1
+k3s_server_ip: 10.9.8.100
+argocd_version: v3.6.1
+
+# Repo de este homelab: ArgoCD lo lee para crear todo lo que hay en apps/
+homelab_repo_dir: "{{ playbook_dir }}/.."
+
+# Nombres que resuelve /etc/hosts en el PC (no hay servidor DNS en casa)
+homelab_hostnames:
+  - grafana.home.arpa
+  - demo-api.home.arpa
+
+# Los secretos NO van aquí: van cifrados en vault.yml (ver vault.example.yml y docs/ansible.md)

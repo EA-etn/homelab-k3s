@@ -1,0 +1,23 @@
+# Plantilla de los secretos del homelab. NO pongas valores reales en este archivo.
+#
+#   cp group_vars/all/vault.example.yml group_vars/all/vault.yml
+#   (rellena los valores)
+#   ansible-vault encrypt group_vars/all/vault.yml
+#
+# vault.yml se sube a Git CIFRADO. Sin la contraseña del vault es ilegible.
+# Para editarlo después: ansible-vault edit group_vars/all/vault.yml
+
+# Token del clúster k3s. En un clúster existente: sudo cat /var/lib/rancher/k3s/server/node-token (en la Pi)
+# En uno nuevo: invéntalo largo y aleatorio (openssl rand -hex 32)
+vault_k3s_token: "CAMBIAME"
+
+# Bot de Telegram del homelab (docs/alerting.md)
+vault_telegram_bot_token: "CAMBIAME"
+vault_telegram_chat_id: "CAMBIAME"
+
+# Ping URL del check de healthchecks.io (dead man's switch)
+vault_healthchecks_ping_url: "https://hc-ping.com/CAMBIAME"
+
+# Usuario y contraseña de admin de Grafana
+vault_grafana_admin_user: "admin"
+vault_grafana_admin_password: "CAMBIAME"

@@ -1,0 +1,2 @@
+# Etiqueta del nodo: Prometheus, Grafana y Alertmanager solo van a los nodos "worker"
+k3s_agent_node_role: worker

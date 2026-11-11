@@ -77,3 +77,30 @@ jobs:
         run: |
           python3 -c "import yaml" 2>/dev/null || sudo apt-get install -y python3-yaml
           tests/monitoring/run.sh
+
+  ansible:
+    name: Ansible
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ansible
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # Red de seguridad: los secretos solo pueden subirse cifrados con ansible-vault
+      - name: El vault está cifrado
+        run: |
+          for f in $(git ls-files 'group_vars/**/vault.yml' 'host_vars/**/vault.yml'); do
+            head -1 "$f" | grep -q '^\$ANSIBLE_VAULT;' || { echo "::error file=ansible/$f::$f NO está cifrado"; exit 1; }
+            echo "ok: $f cifrado"
+          done
+
+      - name: Instalar Ansible
+        run: pip install ansible-core==2.22.0 ansible-lint==26.11.0
+
+      - name: Sintaxis del playbook
+        run: ansible-playbook site.yml --syntax-check
+
+      - name: ansible-lint
+        run: ansible-lint
+

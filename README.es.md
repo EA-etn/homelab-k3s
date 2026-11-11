@@ -43,7 +43,8 @@ se ejecuta en el clúster**.
 
 | Ruta | Para qué sirve |
 |---|---|
-| `bootstrap/join-worker.sh` | Une un equipo al clúster como agente k3s (misma versión que el servidor) |
+| `ansible/` | Monta las máquinas y el clúster desde cero: k3s, secretos (Ansible Vault) y ArgoCD ([docs](docs/ansible.md)) |
+| `bootstrap/join-worker.sh` | Alternativa manual a Ansible: une un equipo al clúster como agente k3s |
 | `bootstrap/root-app.yaml` | App of Apps: la única Application que se aplica a mano |
 | `apps/` | Una Application de ArgoCD por carga de trabajo. Añade un archivo aquí para desplegar algo |
 | `platform/monitoring/` | Dashboards de Grafana, alertas de Prometheus y SLOs como código |
@@ -57,16 +58,28 @@ se ejecuta en el clúster**.
 
 ## Puesta en marcha
 
+Con Ansible, desde el PC ([detalles](docs/ansible.md)):
+
+```bash
+cd ansible
+ansible-playbook site.yml --ask-become-pass --ask-vault-pass --check --diff   # simulación
+ansible-playbook site.yml --ask-become-pass --ask-vault-pass                  # de verdad
+
+# Ver cómo ArgoCD crea todo lo que hay en apps/
+kubectl -n argocd get applications
+```
+
+<details>
+<summary>A mano, sin Ansible</summary>
+
 ```bash
 # 1. Unir el portátil como worker (se ejecuta en el portátil; el token sale de la Pi)
 sudo K3S_TOKEN='<token>' ./bootstrap/join-worker.sh
 
 # 2. Entregar el clúster a Git
 kubectl apply -f bootstrap/root-app.yaml
-
-# 3. Ver cómo ArgoCD crea todo lo que hay en apps/
-kubectl -n argocd get applications
 ```
+</details>
 
 ## Hoja de ruta
 
@@ -80,6 +93,7 @@ kubectl -n argocd get applications
 - [x] Alertas a Telegram con enlace al runbook, rutas probadas en el CI
 - [x] Dead man's switch: healthchecks.io avisa por Telegram si las alertas dejan de llegar (se apaga el PC, se va la luz o internet)
 - [x] Descheduler: reequilibra `demo-api` entre nodos cuando un nodo vuelve (p. ej. tras suspenderse el portátil)
+- [ ] Ansible: reconstruir el homelab desde cero con un comando (código listo, falta la reconstrucción real)
 - [ ] Secretos de OpenBao gestionados como código
 - [ ] Limpiar las cargas de prueba antiguas
 
