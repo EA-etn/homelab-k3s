@@ -13,7 +13,7 @@ Prometheus ──alerta──▶ Alertmanager ──agrupa, silencia, enruta─�
 |---|---|---|
 | `critical` y `warning` | ✅ Sí, y otro ✅ cuando se resuelve | Requieren acción |
 | `info` (p. ej. `DemoApiSingleNode`) | ❌ No | Informativas: se ven en Grafana y Alertmanager |
-| `Watchdog` | ❌ No | Está siempre activa para demostrar que el sistema de alertas funciona |
+| `Watchdog` | ❌ No (va a healthchecks.io) | Está siempre activa: es la señal de vida del [dead man's switch](#dead-mans-switch) |
 
 - **Agrupación:** alertas iguales del mismo namespace llegan en un solo mensaje (`group_by`).
 - **Repetición:** si una alerta sigue activa, se recuerda cada 4 horas.
@@ -48,6 +48,41 @@ Secret de Kubernetes creado a mano, igual que la contraseña de Grafana.
 
 El Secret debe existir **antes** de desplegar la configuración: Alertmanager lo monta como archivos
 y su pod no arranca sin él.
+
+## Dead man's switch
+
+**El problema:** Prometheus y Alertmanager corren en el PC. Si el PC se apaga (o se va la luz o
+internet), las alertas se apagan con él y **no llega ningún aviso**.
+
+**La solución:** Alertmanager envía cada minuto la alerta `Watchdog` (siempre activa) a
+[healthchecks.io](https://healthchecks.io), un servicio **de fuera de casa**. Si deja de recibirla
+durante 5 minutos, healthchecks.io avisa por Telegram. Qué hacer entonces:
+[runbook](runbooks/DeadMansSwitch.md).
+
+```
+Alertmanager ──Watchdog cada minuto──▶ healthchecks.io ──¿5 min sin señal?──▶ Telegram
+```
+
+| Si cae… | ¿Quién avisa? |
+|---|---|
+| El PC, la luz o internet de casa | healthchecks.io (deja de recibir el Watchdog) |
+| Alertmanager o Prometheus | healthchecks.io |
+| La Raspberry Pi | Prometheus, desde el PC (`TargetDown`) |
+
+**Puesta en marcha (una vez):**
+
+1. En healthchecks.io: **Add Check** con *Period* 1 minuto y *Grace Time* 5 minutos. En
+   **Integrations**, conecta Telegram (healthchecks usa su propio bot). En la descripción del
+   check, pega el enlace al [runbook](runbooks/DeadMansSwitch.md).
+2. Copia la **Ping URL** del check. Es una credencial: quien la tenga puede enviar señales falsas.
+3. Crea el Secret (en el PC, sin que la URL quede en el historial):
+   ```bash
+   read -rs HC_URL   # pega la URL (no se ve) y pulsa Enter
+   kubectl -n monitoring create secret generic alertmanager-healthchecks --from-file=url=/dev/stdin <<< "$HC_URL"
+   unset HC_URL
+   ```
+
+Como el de Telegram, este Secret debe existir **antes** de desplegar la configuración.
 
 ## Probarlo
 

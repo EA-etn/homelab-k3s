@@ -20,7 +20,7 @@ expect_route() {
 expect_route telegram alertname=DemoApiErrorBudgetBurnFast severity=critical slo=disponibilidad
 expect_route telegram alertname=DemoApiDown severity=critical
 expect_route telegram alertname=KubePodCrashLooping severity=warning namespace=demo-api
-expect_route null alertname=Watchdog severity=none
+expect_route healthchecks alertname=Watchdog severity=none
 expect_route null alertname=DemoApiSingleNode severity=info
 
 # Mensaje de ejemplo (una alerta activa y una resuelta)

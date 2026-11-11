@@ -10,6 +10,7 @@ Cada alerta propia lleva un enlace a su runbook (`runbook_url`) y el mensaje de 
 | `DemoApiErrorBudgetBurnSlow` | warning | [DemoApiErrorBudgetBurnSlow](DemoApiErrorBudgetBurnSlow.md) |
 | `DemoApiErrorBudgetExhausted` | warning | [DemoApiErrorBudgetExhausted](DemoApiErrorBudgetExhausted.md) |
 | `DemoApiSingleNode` | info | [DemoApiSingleNode](DemoApiSingleNode.md) |
+| Aviso de healthchecks.io ("homelab-alertmanager is DOWN") | critical | [DeadMansSwitch](DeadMansSwitch.md) |
 
 Las alertas que trae kube-prometheus-stack (`KubePodCrashLooping`, `NodeFilesystemSpaceFillingUp`…)
 enlazan a los runbooks oficiales en [runbooks.prometheus-operator.dev](https://runbooks.prometheus-operator.dev).
