@@ -62,9 +62,11 @@ spec:
             nodeSelector: {homelab/role: worker}
             resources:
               requests: {cpu: 10m, memory: 32Mi}
-            # Token del bot y chat de Telegram: NO están en Git. Secret creado a mano
-            # (docs/alerting.md), montado en /etc/alertmanager/secrets/alertmanager-telegram/
-            secrets: [alertmanager-telegram]
+            # Credenciales que NO están en Git: Secrets creados a mano (docs/alerting.md),
+            # montados en /etc/alertmanager/secrets/<nombre>/
+            #   alertmanager-telegram:     token del bot y chat de Telegram
+            #   alertmanager-healthchecks: URL de ping del dead man's switch (healthchecks.io)
+            secrets: [alertmanager-telegram, alertmanager-healthchecks]
           # Notificaciones a Telegram. Validado en el CI con amtool (tests/alertmanager/)
           config:
             global:
@@ -76,8 +78,14 @@ spec:
               group_interval: 5m
               repeat_interval: 4h
               routes:
-                # Watchdog siempre está activa (prueba de que las alertas funcionan): no avisar
-                - {receiver: "null", matchers: ['alertname = "Watchdog"']}
+                # Dead man's switch: Watchdog está siempre activa y se envía cada minuto a
+                # healthchecks.io, FUERA de casa. Si deja de llegar (se apaga el PC, se va la luz
+                # o internet, o se rompe Alertmanager), healthchecks.io avisa por Telegram.
+                - receiver: healthchecks
+                  matchers: ['alertname = "Watchdog"']
+                  group_wait: 0s
+                  group_interval: 1m
+                  repeat_interval: 1m
                 - {receiver: "null", matchers: ['alertname = "InfoInhibitor"']}
                 # Las de severidad info son informativas: se ven en Grafana, sin mensaje
                 - {receiver: "null", matchers: ['severity = "info"']}
@@ -99,6 +107,10 @@ spec:
               - target_matchers: ['alertname = "InfoInhibitor"']
             receivers:
               - name: "null"
+              - name: healthchecks
+                webhook_configs:
+                  - url_file: /etc/alertmanager/secrets/alertmanager-healthchecks/url
+                    send_resolved: false
               - name: telegram
                 telegram_configs:
                   - bot_token_file: /etc/alertmanager/secrets/alertmanager-telegram/bot-token

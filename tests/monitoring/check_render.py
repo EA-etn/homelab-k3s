@@ -39,6 +39,8 @@ check(bool(graf) and graf[0]["spec"]["template"]["spec"].get("nodeSelector") == 
 am = by_kind.get("Alertmanager", [])
 check(bool(am) and "alertmanager-telegram" in am[0]["spec"].get("secrets", []),
       "Alertmanager monta el Secret alertmanager-telegram")
+check(bool(am) and "alertmanager-healthchecks" in am[0]["spec"].get("secrets", []),
+      "Alertmanager monta el Secret alertmanager-healthchecks (dead man's switch)")
 
 prom = by_kind.get("Prometheus", [])
 check(bool(prom) and prom[0]["spec"].get("retention") == "30d", "Prometheus guarda 30 días (ventana del SLO)")
