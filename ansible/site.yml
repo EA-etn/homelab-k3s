@@ -1,0 +1,40 @@
+# Levanta el homelab entero desde máquinas recién instaladas, o comprueba que sigue igual.
+# Se puede ejecutar cuantas veces quieras: solo cambia lo que no está como debe.
+#
+#   cd ansible
+#   ansible-playbook site.yml --ask-become-pass --ask-vault-pass --check --diff   # simulación
+#   ansible-playbook site.yml --ask-become-pass --ask-vault-pass                  # de verdad
+#
+# Orden: máquinas → servidor → agentes → secretos → ArgoCD → el PC. Desde que se aplica la
+# Application raíz, ArgoCD despliega el resto desde Git (demo-api, monitoring, Descheduler...).
+
+- name: 1. Preparar todas las máquinas
+  hosts: all
+  become: true
+  roles:
+    - common
+
+- name: 2. Servidor k3s (control plane) en la Raspberry Pi
+  hosts: k3s_server
+  become: true
+  roles:
+    - k3s_server
+
+- name: 3. Unir los workers
+  hosts: k3s_agents
+  become: true
+  roles:
+    - k3s_agent
+
+- name: 4. Secretos del clúster y ArgoCD
+  hosts: k3s_server
+  become: true
+  roles:
+    - cluster_secrets
+    - argocd
+
+- name: 5. Dejar el PC listo para usar kubectl
+  hosts: workstation
+  become: true
+  roles:
+    - workstation

@@ -1,0 +1,8 @@
+# Paquetes básicos que necesitan todas las máquinas
+common_packages:
+  - curl
+  - ca-certificates
+  - git
+
+# Solo para portátiles (variable de inventario): no suspender al cerrar la tapa
+common_laptop_ignore_lid: false

@@ -1,0 +1,18 @@
+# Los Secrets que necesita el clúster y que NO están en Git en claro. Los valores salen del
+# vault cifrado (group_vars/all/vault.yml). Deben existir ANTES de que ArgoCD despliegue
+# monitoring: Alertmanager y Grafana los montan y no arrancan sin ellos.
+cluster_secrets_list:
+  - namespace: monitoring
+    name: alertmanager-telegram
+    data:
+      bot-token: "{{ vault_telegram_bot_token }}"
+      chat-id: "{{ vault_telegram_chat_id | string }}"
+  - namespace: monitoring
+    name: alertmanager-healthchecks
+    data:
+      url: "{{ vault_healthchecks_ping_url }}"
+  - namespace: monitoring
+    name: grafana-admin
+    data:
+      admin-user: "{{ vault_grafana_admin_user }}"
+      admin-password: "{{ vault_grafana_admin_password }}"

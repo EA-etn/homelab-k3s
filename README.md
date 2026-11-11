@@ -43,7 +43,8 @@ on the cluster**.
 
 | Path | Purpose |
 |---|---|
-| `bootstrap/join-worker.sh` | Joins a machine to the cluster as a k3s agent (same version as the server) |
+| `ansible/` | Builds the machines and the cluster from scratch: k3s, secrets (Ansible Vault), ArgoCD ([docs](docs/ansible.md), Spanish) |
+| `bootstrap/join-worker.sh` | Manual alternative to Ansible: joins a machine to the cluster as a k3s agent |
 | `bootstrap/root-app.yaml` | App of Apps: the only Application applied by hand |
 | `apps/` | One ArgoCD Application per workload. Add a file here to deploy something |
 | `platform/monitoring/` | Grafana dashboards, Prometheus alerts and SLOs as code |
@@ -57,16 +58,28 @@ on the cluster**.
 
 ## Getting started
 
+With Ansible, from the PC ([details](docs/ansible.md)):
+
+```bash
+cd ansible
+ansible-playbook site.yml --ask-become-pass --ask-vault-pass --check --diff   # dry run
+ansible-playbook site.yml --ask-become-pass --ask-vault-pass                  # for real
+
+# Watch ArgoCD create everything in apps/
+kubectl -n argocd get applications
+```
+
+<details>
+<summary>By hand, without Ansible</summary>
+
 ```bash
 # 1. Join the laptop as a worker (run on the laptop; the token comes from the Pi)
 sudo K3S_TOKEN='<token>' ./bootstrap/join-worker.sh
 
 # 2. Hand the cluster over to Git
 kubectl apply -f bootstrap/root-app.yaml
-
-# 3. Watch ArgoCD create everything in apps/
-kubectl -n argocd get applications
 ```
+</details>
 
 ## Roadmap
 
@@ -80,6 +93,7 @@ kubectl -n argocd get applications
 - [x] Alerts to Telegram with a runbook link, routing tested in CI
 - [x] Dead man's switch: healthchecks.io notifies on Telegram if alerts stop arriving (the PC goes down, power or internet is lost)
 - [x] Descheduler: rebalances `demo-api` across nodes when a node comes back (e.g. after the laptop suspends)
+- [ ] Ansible: rebuild the homelab from scratch with one command (code ready, real rebuild pending)
 - [ ] Secrets from OpenBao managed as code
 - [ ] Clean up legacy test workloads
 

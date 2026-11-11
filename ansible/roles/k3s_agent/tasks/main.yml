@@ -1,0 +1,39 @@
+# Une una máquina al clúster como agente (worker). Sustituye a bootstrap/join-worker.sh.
+# Si ya está instalada la versión de group_vars, no hace nada.
+
+- name: Ver qué versión de k3s está instalada
+  ansible.builtin.command: k3s --version
+  register: k3s_agent_installed
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+- name: Comprobar que el servidor responde en el puerto 6443
+  ansible.builtin.wait_for:
+    host: "{{ k3s_server_ip }}"
+    port: 6443
+    timeout: 10
+
+- name: Instalar o actualizar el agente k3s
+  when: k3s_version not in (k3s_agent_installed.stdout | default(''))
+  block:
+    - name: Descargar el instalador oficial de k3s
+      ansible.builtin.get_url:
+        url: https://get.k3s.io
+        dest: /usr/local/src/k3s-install.sh
+        mode: "0755"
+
+    - name: Ejecutar el instalador (agente)
+      ansible.builtin.command: >-
+        /usr/local/src/k3s-install.sh agent --node-label homelab/role={{ k3s_agent_node_role }}
+      environment:
+        INSTALL_K3S_VERSION: "{{ k3s_version }}"
+        K3S_URL: "https://{{ k3s_server_ip }}:6443"
+        K3S_TOKEN: "{{ vault_k3s_token }}"
+      changed_when: true
+      no_log: true
+
+- name: Esperar a que el nodo esté Ready (se pregunta al servidor)
+  ansible.builtin.command: k3s kubectl wait --for=condition=Ready node/{{ inventory_hostname }} --timeout=300s
+  delegate_to: "{{ groups['k3s_server'][0] }}"
+  changed_when: false

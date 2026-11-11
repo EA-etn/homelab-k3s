@@ -1,0 +1,2 @@
+# Usuario del PC que usa kubectl (dueño de ~/.kube/config): quien ejecuta el playbook
+workstation_user: "{{ lookup('ansible.builtin.env', 'USER') }}"

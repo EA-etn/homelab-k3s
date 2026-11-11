@@ -1,0 +1,31 @@
+# Deja el PC listo para trabajar con el clúster: nombres en /etc/hosts y kubectl configurado.
+
+- name: Nombres del homelab en /etc/hosts (apuntan a la Pi; Traefik escucha en los dos nodos)
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: '\s{{ homelab_hostnames[0] | regex_escape }}(\s|$)'
+    line: "{{ k3s_server_ip }} {{ homelab_hostnames | join(' ') }}"
+
+- name: Leer el kubeconfig del servidor
+  ansible.builtin.slurp:
+    src: /etc/rancher/k3s/k3s.yaml
+  delegate_to: "{{ groups['k3s_server'][0] }}"
+  register: workstation_kubeconfig
+  no_log: true
+
+- name: Crear ~/.kube
+  ansible.builtin.file:
+    path: "~{{ workstation_user }}/.kube"
+    state: directory
+    owner: "{{ workstation_user }}"
+    mode: "0700"
+
+# Es una credencial del clúster: solo la lee tu usuario, y se guarda copia si ya existía
+- name: Guardar el kubeconfig apuntando a la Pi
+  ansible.builtin.copy:
+    content: "{{ workstation_kubeconfig.content | b64decode | replace('127.0.0.1', k3s_server_ip) }}"
+    dest: "~{{ workstation_user }}/.kube/config"
+    owner: "{{ workstation_user }}"
+    mode: "0600"
+    backup: true
+  no_log: true

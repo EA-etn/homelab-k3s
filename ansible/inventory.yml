@@ -1,0 +1,20 @@
+# Las máquinas del homelab. Ansible se ejecuta desde nexcore (el PC), así que nexcore se
+# gestiona en local y la Pi por SSH.
+all:
+  children:
+    k3s_server:
+      hosts:
+        devops-lab:
+          ansible_host: 10.9.8.100
+          # Usuario con el que entras por SSH a la Pi. Cámbialo si es otro.
+          ansible_user: antonio
+    k3s_agents:
+      hosts:
+        nexcore:
+          ansible_connection: local
+          k3s_agent_node_role: worker
+          # Portátil: que no se suspenda al cerrar la tapa (igual que bootstrap/join-worker.sh)
+          common_laptop_ignore_lid: true
+    workstation:
+      hosts:
+        nexcore:
