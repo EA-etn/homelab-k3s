@@ -2,6 +2,9 @@
 // Los textos que no aparecen aquí se dejan igual (nombres de herramientas, etc.).
 module.exports = {
   en: {
+    'App of Apps · despliega todo desde Git · self-heal': 'App of Apps · deploys everything from Git · self-heal',
+    'Una réplica en cada nodo: si uno cae, el otro sigue atendiendo. Cuando vuelve, el Descheduler reequilibra.': 'One replica per node: if one goes down, the other keeps serving. When it comes back, the Descheduler rebalances.',
+    'si calla': 'if silent',
     // 01-architecture
     'homelab-k3s · arquitectura': 'homelab-k3s · architecture',
     'Clúster on-premise gestionado desde Git': 'An on-premise cluster managed from Git',

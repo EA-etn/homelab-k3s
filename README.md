@@ -23,7 +23,7 @@ Applications are built elsewhere. [DevSecOps Pipeline](https://github.com/EA-etn
 tests, scans, signs and publishes `demo-api` as a multi-arch image; this repo decides **what runs
 on the cluster**.
 
-<img src="docs/diagrams/en/01-architecture.svg" alt="Architecture: GitHub repos feed ArgoCD, which syncs a k3s cluster on a Raspberry Pi and a PC; Prometheus, Grafana and Alertmanager run on the PC and alert to Telegram" width="100%">
+<img src="docs/diagrams/en/01-architecture.svg" alt="Architecture: GitHub repos feed ArgoCD, which syncs a k3s cluster on a Raspberry Pi and a PC; Prometheus, Grafana and Alertmanager run on the PC and alert to Telegram; healthchecks.io watches the alerting from outside" width="100%">
 
 <sub><a href="https://raw.githubusercontent.com/EA-etn/homelab-k3s/main/docs/diagrams/en/01-architecture.png">🔍 View full size</a></sub>
 
@@ -32,12 +32,27 @@ on the cluster**.
 | | |
 |---|---|
 | ☸️ **Hybrid cluster** | k3s control plane on a Raspberry Pi 4 (arm64, boots from SSD) + laptop worker (amd64). The same multi-arch image runs on both |
-| 🔄 **GitOps** | App of Apps: one manual `kubectl apply`, everything else comes from `apps/`. Self-heal and prune on |
-| 📊 **Observability** | kube-prometheus-stack with dashboards as code, 30-day retention, synthetic traffic through the ingress |
-| 🎯 **SLOs** | 99.5 % availability and 99 % of requests under 100 ms, error budget and multi-window burn-rate alerts ([docs/slo.md](docs/slo.md)) |
-| 🚨 **Incident response** | Alerts to Telegram with a link to the [runbook](docs/runbooks/README.md) for each alert, inhibition and silences |
+| 🔄 **GitOps** | App of Apps: one `kubectl apply`, everything else comes from `apps/`. Self-heal and prune on |
+| 🎯 **SLOs** | 99.5 % availability and 99 % of requests under 100 ms, with an error budget and multi-window burn-rate alerts ([docs/slo.md](docs/slo.md)) |
+| 🚨 **Incident response** | Alerts reach Telegram with a link to the [runbook](docs/runbooks/README.md) for that alert. A [dead man's switch](docs/alerting.md#dead-mans-switch) outside the house warns if alerting itself goes down |
 | 🧪 **Tested alerting** | `promtool` unit tests for every SLO alert and `amtool` checks for routing and the Telegram message, in CI |
-| 🔐 **No secrets in Git** | Grafana password and Telegram token live in Secrets created by hand; the repo is public |
+| 📊 **Observability** | kube-prometheus-stack with dashboards as code, 30-day retention and synthetic traffic through the ingress |
+| 🛠️ **Rebuildable** | An [Ansible](docs/ansible.md) playbook builds the nodes, k3s, the Secrets and ArgoCD; ArgoCD does the rest from Git (real rebuild pending) |
+| 🔐 **No plain-text secrets** | Tokens and passwords live in Kubernetes Secrets, never in Git in clear text. The Ansible Vault that recreates them is encrypted, and both CI and a Git hook refuse an unencrypted one |
+
+## When something fails
+
+The point of a platform is what happens on a bad day.
+
+| If… | What happens | Evidence |
+|---|---|---|
+| A pod dies | Kubernetes replaces it while the other replica keeps serving | ✅ Chaos test: 300 requests during a pod kill, 0 failed |
+| A node goes down | The replica on the other node keeps serving; the mandatory spread rule ignores the dead node | Seen when the laptop suspended · measured test pending |
+| The node comes back | The Descheduler moves a pod back within 5 minutes: one replica per node again | ✅ `cordon` / `uncordon` test |
+| Errors or latency burn the error budget | A burn-rate alert reaches Telegram with its runbook | ✅ Rules unit-tested in CI · live test pending |
+| The monitoring host itself goes down | healthchecks.io stops receiving the heartbeat and warns from outside the house | ✅ Heartbeat arriving · power-off test pending |
+| Someone changes the cluster by hand | ArgoCD puts it back as Git says (`selfHeal`) | Configured |
+| A bad version is deployed | The old pods keep serving; `git revert` and ArgoCD rolls back | Chaos test pending |
 
 ## Repository layout
 
@@ -93,9 +108,9 @@ kubectl apply -f bootstrap/root-app.yaml
 - [x] Alerts to Telegram with a runbook link, routing tested in CI
 - [x] Dead man's switch: healthchecks.io notifies on Telegram if alerts stop arriving (the PC goes down, power or internet is lost)
 - [x] Descheduler: rebalances `demo-api` across nodes when a node comes back (e.g. after the laptop suspends)
+- [ ] Chaos engineering: bad deploy, 5xx burn, node power-off (pod kill done)
 - [ ] Ansible: rebuild the homelab from scratch with one command (code ready, real rebuild pending)
-- [ ] Secrets from OpenBao managed as code
-- [ ] Clean up legacy test workloads
+- [ ] Clean up legacy test workloads and decide what to do with OpenBao (unused today)
 
 ## License
 

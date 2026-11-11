@@ -1,4 +1,4 @@
-<!-- size: 1200x1300 -->
+<!-- size: 1200x1340 -->
 <!-- Formato estrecho y alto: en la columna del README (~830 px) el texto se lee sin ampliar -->
 <div class="title">
   <div class="eyebrow">homelab-k3s · arquitectura</div>
@@ -26,54 +26,62 @@
 </div>
 
 <!-- Clúster -->
-<div class="zone" style="--c:var(--green);left:40px;top:360px;width:1120px;height:700px"><div class="zl">clúster k3s · v1.36</div></div>
-<div class="card" id="argo" style="--c:var(--green);left:70px;top:415px;width:420px">
-  <div class="ico"><i data-icon="refresh-cw"></i></div>
-  <div><h3>ArgoCD</h3><div class="sub">App of Apps · self-heal</div></div>
+<div class="zone" style="--c:var(--green);left:40px;top:360px;width:1120px;height:740px"><div class="zl">clúster k3s · v1.36</div></div>
+<div class="card col" id="argo" style="--c:var(--green);left:70px;top:410px;width:620px">
+  <div class="head"><div class="ico"><i data-icon="refresh-cw"></i></div>
+    <div><h3>ArgoCD</h3><div class="sub">App of Apps · despliega todo desde Git · self-heal</div></div></div>
+  <div class="pills" style="--c:var(--green)"><span class="pill mono">demo-api</span><span class="pill mono">monitoring</span><span class="pill mono">descheduler</span></div>
 </div>
 <div class="card" id="tr" style="--c:var(--blue);left:810px;top:415px;width:320px">
   <div class="ico"><i data-icon="route"></i></div>
   <div><h3>Traefik</h3><div class="sub mono">*.home.arpa</div></div>
 </div>
 
-<div class="zone" id="npi" style="--c:var(--cyan);left:70px;top:560px;width:400px;height:470px"><div class="zl">raspberry pi 4 · arm64</div></div>
-<div class="card" style="--c:var(--cyan);left:100px;top:620px;width:340px">
+<div class="zone" id="npi" style="--c:var(--cyan);left:70px;top:600px;width:400px;height:470px"><div class="zl">raspberry pi 4 · arm64</div></div>
+<div class="card" style="--c:var(--cyan);left:100px;top:660px;width:340px">
   <div class="ico"><i data-icon="cpu"></i></div>
   <div><h3>Control plane</h3><div class="sub">k3s server · SSD</div></div>
 </div>
-<div class="card" id="podpi" style="--c:var(--green);left:100px;top:760px;width:340px">
+<div class="card" id="podpi" style="--c:var(--green);left:100px;top:800px;width:340px">
   <div class="ico"><i data-icon="box"></i></div>
   <div><h3>demo-api</h3><div class="sub">réplica arm64</div></div>
 </div>
 
-<div class="zone" id="npc" style="--c:var(--cyan);left:500px;top:560px;width:630px;height:470px"><div class="zl">pc · amd64 · worker</div></div>
-<div class="card" id="podpc" style="--c:var(--green);left:525px;top:620px;width:285px">
+<div style="position:absolute;left:100px;top:915px;width:340px;font:500 16px/1.5 Inter;color:var(--muted)">Una réplica en cada nodo: si uno cae, el otro sigue atendiendo. Cuando vuelve, el Descheduler reequilibra.</div>
+
+<div class="zone" id="npc" style="--c:var(--cyan);left:500px;top:600px;width:630px;height:470px"><div class="zl">pc · amd64 · worker</div></div>
+<div class="card" id="podpc" style="--c:var(--green);left:525px;top:660px;width:285px">
   <div class="ico"><i data-icon="box"></i></div>
   <div><h3>demo-api</h3><div class="sub">réplica amd64</div></div>
 </div>
-<div class="card" id="syn" style="--c:var(--blue);left:825px;top:620px;width:285px">
+<div class="card" id="syn" style="--c:var(--blue);left:825px;top:660px;width:285px">
   <div class="ico"><i data-icon="radio"></i></div>
   <div><h3>Sintético</h3><div class="sub">2 req/s</div></div>
 </div>
-<div class="card" id="prom" style="--c:var(--orange);left:525px;top:760px;width:285px">
+<div class="card" id="prom" style="--c:var(--orange);left:525px;top:800px;width:285px">
   <div class="ico"><i data-icon="activity"></i></div>
   <div><h3>Prometheus</h3><div class="sub">SLOs · 30 días</div></div>
 </div>
-<div class="card" id="graf" style="--c:var(--orange);left:825px;top:760px;width:285px">
+<div class="card" id="graf" style="--c:var(--orange);left:825px;top:800px;width:285px">
   <div class="ico"><i data-icon="layout-dashboard"></i></div>
   <div><h3>Grafana</h3><div class="sub">dashboards</div></div>
 </div>
-<div class="card" id="am" style="--c:var(--orange);left:525px;top:900px;width:285px">
+<div class="card" id="am" style="--c:var(--orange);left:525px;top:940px;width:285px">
   <div class="ico"><i data-icon="bell-ring"></i></div>
   <div><h3>Alertmanager</h3><div class="sub">rutas · silencios</div></div>
 </div>
 
-<div class="card" id="tg" style="--c:var(--blue);left:525px;top:1110px;width:285px">
+<div class="card" id="tg" style="--c:var(--blue);left:420px;top:1150px;width:285px">
   <div class="ico"><i data-icon="smartphone"></i></div>
   <div><h3>Telegram</h3><div class="sub">alerta + runbook</div></div>
 </div>
 
-<div class="legend" style="top:1240px">
+<div class="card" id="hc" style="--c:var(--blue);left:850px;top:1150px;width:285px">
+  <div class="ico"><i data-icon="heart-pulse"></i></div>
+  <div><h3>healthchecks.io</h3><div class="sub">dead man's switch</div></div>
+</div>
+
+<div class="legend" style="top:1280px">
   <span style="--c:var(--purple)"><i></i>Git</span>
   <span style="--c:var(--green)"><i></i>GitOps y app</span>
   <span style="--c:var(--blue)"><i></i>Tráfico y avisos</span>
@@ -82,12 +90,13 @@
 </div>
 
 <script>
-wire('hl:bottom', 'argo:top@0.2857', { label: 'lee Git', color: '#10b981', labelColor: '#10b981', at: [190, 335] });
-wire('dsp:bottom', 'argo:top@0.75', { color: '#10b981' });
-wire('argo:bottom', 'npi:top@0.5', { label: 'sync' });
+wire('hl:bottom', 'argo:top@0.1935', { label: 'lee Git', color: '#10b981', labelColor: '#10b981', at: [190, 335] });
+wire('dsp:bottom', 'argo:top@0.6452', { color: '#10b981' });
 wire('ghcr:bottom', 'npc:top@0.39', { label: 'pull', dashed: true });
 wire('user:bottom', 'tr:top@0.75', { label: 'HTTP' });
 wire('tr:bottom', 'npc:top@0.8');
 wire('prom:bottom', 'am:top');
-wire('am:bottom', 'tg:top', { label: 'alerta', color: '#3b82f6', labelColor: '#60a5fa' });
+wire('am:bottom', 'tg:top@0.868', { label: 'alerta', color: '#3b82f6', labelColor: '#60a5fa' });
+wire('am:right', 'hc:top', { label: 'Watchdog', dashed: true, color: '#3b82f6', labelColor: '#60a5fa' });
+wire('hc:left', 'tg:right', { label: 'si calla', color: '#3b82f6', labelColor: '#60a5fa' });
 </script>
