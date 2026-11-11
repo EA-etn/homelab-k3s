@@ -6,7 +6,10 @@
 ## Qué significa
 
 Alertmanager envía la alerta `Watchdog` (siempre activa) a healthchecks.io **cada minuto**. El
-mensaje "homelab-alertmanager is DOWN" significa que lleva **más de 5 minutos sin llegar** ninguna.
+mensaje "homelab-alertmanager is DOWN" significa que lleva **unos 7 minutos sin llegar** ninguna
+(periodo de 2 minutos + 5 de gracia).
+
+El color naranja (*late*) no es una alerta: el ping llegó algo tarde, pero aún dentro del margen.
 
 Es decir: **el sistema de alertas del homelab no funciona**, y ninguna otra alerta te va a llegar
 hasta que se arregle. Por eso este aviso viene de fuera de casa.
@@ -26,7 +29,7 @@ Ve de lo más grande a lo más pequeño:
 ## Verificación
 
 - En healthchecks.io el check vuelve a **UP** (verde) y llega el aviso de recuperación.
-- La columna **Last Ping** de healthchecks.io se actualiza cada minuto.
+- La columna **Last Ping** de healthchecks.io se actualiza cada 1–2 minutos.
 
 ## Qué NO cubre
 

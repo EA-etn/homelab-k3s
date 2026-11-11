@@ -56,11 +56,11 @@ internet), las alertas se apagan con él y **no llega ningún aviso**.
 
 **La solución:** Alertmanager envía cada minuto la alerta `Watchdog` (siempre activa) a
 [healthchecks.io](https://healthchecks.io), un servicio **de fuera de casa**. Si deja de recibirla
-durante 5 minutos, healthchecks.io avisa por Telegram. Qué hacer entonces:
+unos 7 minutos (2 de periodo + 5 de gracia), healthchecks.io avisa por Telegram y email. Qué hacer entonces:
 [runbook](runbooks/DeadMansSwitch.md).
 
 ```
-Alertmanager ──Watchdog cada minuto──▶ healthchecks.io ──¿5 min sin señal?──▶ Telegram
+Alertmanager ──Watchdog cada minuto──▶ healthchecks.io ──¿7 min sin señal?──▶ Telegram
 ```
 
 | Si cae… | ¿Quién avisa? |
@@ -71,7 +71,10 @@ Alertmanager ──Watchdog cada minuto──▶ healthchecks.io ──¿5 min s
 
 **Puesta en marcha (una vez):**
 
-1. En healthchecks.io: **Add Check** con *Period* 1 minuto y *Grace Time* 5 minutos. En
+1. En healthchecks.io: **Add Check** con *Period* 2 minutos y *Grace Time* 5 minutos. El periodo
+   es de 2 minutos aunque el ping salga cada minuto: Alertmanager a veces tarda hasta ~2 minutos en
+   reenviarlo (`group_interval` + `repeat_interval`), y con 1 minuto el check se pondría en naranja
+   (*late*) sin motivo. En
    **Integrations**, conecta Telegram (healthchecks usa su propio bot). En la descripción del
    check, pega el enlace al [runbook](runbooks/DeadMansSwitch.md).
 2. Copia la **Ping URL** del check. Es una credencial: quien la tenga puede enviar señales falsas.
