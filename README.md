@@ -99,7 +99,7 @@ kubectl apply -f bootstrap/root-app.yaml
 ## Roadmap
 
 - [x] k3s control plane on a Raspberry Pi 4 booting from SSD
-- [x] ArgoCD and OpenBao (secrets) installed
+- [x] ArgoCD installed
 - [x] Laptop joined as an amd64 worker
 - [x] App of Apps: the cluster managed from this repo
 - [x] `demo-api` deployed across both nodes (one replica per architecture)
@@ -108,9 +108,9 @@ kubectl apply -f bootstrap/root-app.yaml
 - [x] Alerts to Telegram with a runbook link, routing tested in CI
 - [x] Dead man's switch: healthchecks.io notifies on Telegram if alerts stop arriving (the PC goes down, power or internet is lost)
 - [x] Descheduler: rebalances `demo-api` across nodes when a node comes back (e.g. after the laptop suspends)
+- [x] Legacy test workloads cleaned up and OpenBao removed (unused, dev mode only)
 - [ ] Chaos engineering: bad deploy, 5xx burn, node power-off (pod kill done)
 - [ ] Ansible: rebuild the homelab from scratch with one command (code ready, real rebuild pending)
-- [ ] Clean up legacy test workloads and decide what to do with OpenBao (unused today)
 
 ## License
 

@@ -99,7 +99,7 @@ kubectl apply -f bootstrap/root-app.yaml
 ## Hoja de ruta
 
 - [x] Control plane de k3s en una Raspberry Pi 4 arrancando desde SSD
-- [x] ArgoCD y OpenBao (secretos) instalados
+- [x] ArgoCD instalado
 - [x] Portátil unido como worker amd64
 - [x] App of Apps: el clúster gestionado desde este repo
 - [x] `demo-api` desplegada en los dos nodos (una réplica por arquitectura)
@@ -108,9 +108,9 @@ kubectl apply -f bootstrap/root-app.yaml
 - [x] Alertas a Telegram con enlace al runbook, rutas probadas en el CI
 - [x] Dead man's switch: healthchecks.io avisa por Telegram si las alertas dejan de llegar (se apaga el PC, se va la luz o internet)
 - [x] Descheduler: reequilibra `demo-api` entre nodos cuando un nodo vuelve (p. ej. tras suspenderse el portátil)
+- [x] Cargas de prueba antiguas limpiadas y OpenBao retirado (sin uso, solo en modo dev)
 - [ ] Chaos engineering: despliegue roto, quema por 5xx y apagado de un nodo (matar un pod, hecho)
 - [ ] Ansible: reconstruir el homelab desde cero con un comando (código listo, falta la reconstrucción real)
-- [ ] Limpiar las cargas de prueba antiguas y decidir qué hacer con OpenBao (hoy sin uso)
 
 ## Licencia
 
