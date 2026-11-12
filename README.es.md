@@ -23,7 +23,7 @@ Las aplicaciones se construyen en otro sitio. [DevSecOps Pipeline](https://githu
 prueba, escanea, firma y publica `demo-api` como imagen multi-arquitectura; este repo decide **qué
 se ejecuta en el clúster**.
 
-<img src="docs/diagrams/es/01-architecture.svg" alt="Arquitectura: los repos de GitHub alimentan a ArgoCD, que sincroniza un clúster k3s en una Raspberry Pi y un PC; Prometheus, Grafana y Alertmanager corren en el PC y avisan por Telegram" width="100%">
+<img src="docs/diagrams/es/01-architecture.svg" alt="Arquitectura: los repos de GitHub alimentan a ArgoCD, que sincroniza un clúster k3s en una Raspberry Pi y un PC; Prometheus, Grafana y Alertmanager corren en el PC y avisan por Telegram; healthchecks.io vigila las alertas desde fuera" width="100%">
 
 <sub><a href="https://raw.githubusercontent.com/EA-etn/homelab-k3s/main/docs/diagrams/es/01-architecture.png">🔍 Ver a tamaño completo</a></sub>
 
@@ -31,13 +31,28 @@ se ejecuta en el clúster**.
 
 | | |
 |---|---|
-| ☸️ **Clúster híbrido** | Control plane k3s en una Raspberry Pi 4 (arm64, arranca desde SSD) + portátil como worker (amd64). La misma imagen multi-arquitectura corre en los dos |
-| 🔄 **GitOps** | App of Apps: un único `kubectl apply` manual, todo lo demás sale de `apps/`. Self-heal y prune activados |
-| 📊 **Observabilidad** | kube-prometheus-stack con dashboards como código, 30 días de retención y tráfico sintético a través del ingress |
-| 🎯 **SLOs** | 99,5 % de disponibilidad y 99 % de peticiones en menos de 100 ms, presupuesto de errores y alertas multi-ventana por burn rate ([docs/slo.md](docs/slo.md)) |
-| 🚨 **Respuesta a incidentes** | Alertas a Telegram con enlace al [runbook](docs/runbooks/README.md) de cada alerta, inhibición y silencios |
-| 🧪 **Alertas probadas** | Tests unitarios con `promtool` para cada alerta del SLO y comprobaciones con `amtool` de rutas y mensaje de Telegram, en el CI |
-| 🔐 **Sin secretos en Git** | La contraseña de Grafana y el token de Telegram viven en Secrets creados a mano; el repo es público |
+| ☸️ **Clúster híbrido** | Control plane de k3s en una Raspberry Pi 4 (arm64, arranca desde SSD) + portátil como worker (amd64). La misma imagen multi-arquitectura corre en los dos |
+| 🔄 **GitOps** | App of Apps: un solo `kubectl apply`, todo lo demás sale de `apps/`. Self-heal y prune activados |
+| 🎯 **SLOs** | 99,5 % de disponibilidad y 99 % de peticiones en menos de 100 ms, con presupuesto de errores y alertas multi-ventana por burn rate ([docs/slo.md](docs/slo.md)) |
+| 🚨 **Respuesta a incidentes** | Las alertas llegan a Telegram con el enlace al [runbook](docs/runbooks/README.md) de esa alerta. Un [dead man's switch](docs/alerting.md#dead-mans-switch) fuera de casa avisa si lo que cae es el propio sistema de alertas |
+| 🧪 **Alertas con tests** | Tests unitarios con `promtool` para cada alerta de SLO y comprobaciones con `amtool` de las rutas y del mensaje de Telegram, en el CI |
+| 📊 **Observabilidad** | kube-prometheus-stack con dashboards como código, 30 días de retención y tráfico sintético a través del Ingress |
+| 🛠️ **Reconstruible** | Un playbook de [Ansible](docs/ansible.md) monta los nodos, k3s, los Secrets y ArgoCD; ArgoCD hace el resto desde Git (falta la reconstrucción real) |
+| 🔐 **Sin secretos en claro** | Los tokens y contraseñas viven en Secrets de Kubernetes, nunca en Git en claro. El Ansible Vault que los recrea va cifrado, y tanto el CI como un hook de Git rechazan uno sin cifrar |
+
+## Cuando algo falla
+
+Lo que importa de una plataforma es lo que pasa en un mal día.
+
+| Si… | Qué pasa | Evidencia |
+|---|---|---|
+| Muere un pod | Kubernetes lo sustituye mientras la otra réplica sigue atendiendo | ✅ Test de chaos: 300 peticiones mientras se mataba un pod, 0 fallidas |
+| Cae un nodo | La réplica del otro nodo sigue atendiendo; la regla de reparto obligatoria ignora el nodo caído | Visto al suspenderse el portátil · falta el test con medición |
+| El nodo vuelve | El Descheduler devuelve un pod en menos de 5 minutos: otra vez una réplica por nodo | ✅ Test con `cordon` / `uncordon` |
+| Los errores o la latencia queman el presupuesto | Llega a Telegram una alerta por burn rate con su runbook | ✅ Reglas con tests en el CI · falta la prueba en vivo |
+| Cae la propia máquina del monitoring | healthchecks.io deja de recibir la señal de vida y avisa desde fuera de casa | ✅ La señal llega · falta la prueba de apagado |
+| Alguien cambia el clúster a mano | ArgoCD lo deja como dice Git (`selfHeal`) | Configurado |
+| Se despliega una versión mala | Los pods viejos siguen atendiendo; `git revert` y ArgoCD vuelve atrás | Falta el test de chaos |
 
 ## Estructura
 
@@ -93,9 +108,9 @@ kubectl apply -f bootstrap/root-app.yaml
 - [x] Alertas a Telegram con enlace al runbook, rutas probadas en el CI
 - [x] Dead man's switch: healthchecks.io avisa por Telegram si las alertas dejan de llegar (se apaga el PC, se va la luz o internet)
 - [x] Descheduler: reequilibra `demo-api` entre nodos cuando un nodo vuelve (p. ej. tras suspenderse el portátil)
+- [ ] Chaos engineering: despliegue roto, quema por 5xx y apagado de un nodo (matar un pod, hecho)
 - [ ] Ansible: reconstruir el homelab desde cero con un comando (código listo, falta la reconstrucción real)
-- [ ] Secretos de OpenBao gestionados como código
-- [ ] Limpiar las cargas de prueba antiguas
+- [ ] Limpiar las cargas de prueba antiguas y decidir qué hacer con OpenBao (hoy sin uso)
 
 ## Licencia
 
