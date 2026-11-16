@@ -96,10 +96,14 @@ git config core.hooksPath .githooks
 
 ```bash
 cd ansible
-cp group_vars/all/vault.example.yml group_vars/all/vault.yml
+cp vault.example.yml group_vars/all/vault.yml
 nano group_vars/all/vault.yml           # rellena los valores reales
 ansible-vault encrypt group_vars/all/vault.yml
 ```
+
+Las contraseñas de `sudo` de la Pi y del PC son distintas: la de la Pi va en el vault
+(`vault_become_password_pi`, la usa [`host_vars/devops-lab.yml`](../ansible/host_vars/devops-lab.yml)),
+y la del PC se escribe al ejecutar el playbook (`--ask-become-pass`).
 
 Para un clúster que ya existe, `vault_k3s_token` es el token actual del servidor (en la Pi:
 `sudo cat /var/lib/rancher/k3s/server/node-token`). Cópialo directamente al vault: no lo pegues en
@@ -114,7 +118,8 @@ cd ansible
 ansible-playbook site.yml --ask-become-pass --ask-vault-pass --check --diff
 ```
 
-`--ask-become-pass` pide tu contraseña de `sudo`, y `--ask-vault-pass`, la del vault. En modo
+`--ask-become-pass` pide tu contraseña de `sudo` **del PC** (la de la Pi sale del vault), y
+`--ask-vault-pass`, la del vault. En modo
 simulación, las tareas que hablan con el clúster (`kubectl`) se saltan: solo se comprueba la parte de
 las máquinas.
 

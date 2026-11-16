@@ -11,4 +11,4 @@ homelab_hostnames:
   - grafana.home.arpa
   - demo-api.home.arpa
 
-# Los secretos NO van aquí: van cifrados en vault.yml (ver vault.example.yml y docs/ansible.md)
+# Los secretos NO van aquí: van cifrados en vault.yml (plantilla: ansible/vault.example.yml; ver docs/ansible.md)

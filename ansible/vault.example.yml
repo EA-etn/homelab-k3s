@@ -1,11 +1,17 @@
 # Plantilla de los secretos del homelab. NO pongas valores reales en este archivo.
+# Está fuera de group_vars/ a propósito: Ansible carga todo lo que hay allí, y estos valores
+# falsos no deben usarse nunca.
 #
-#   cp group_vars/all/vault.example.yml group_vars/all/vault.yml
+#   cp vault.example.yml group_vars/all/vault.yml
 #   (rellena los valores)
 #   ansible-vault encrypt group_vars/all/vault.yml
 #
 # vault.yml se sube a Git CIFRADO. Sin la contraseña del vault es ilegible.
 # Para editarlo después: ansible-vault edit group_vars/all/vault.yml
+
+# Contraseña de sudo del usuario de la Pi (antonio). La del PC se escribe al ejecutar
+# el playbook con --ask-become-pass.
+vault_become_password_pi: "CAMBIAME"
 
 # Token del clúster k3s. En un clúster existente: sudo cat /var/lib/rancher/k3s/server/node-token (en la Pi)
 # En uno nuevo: invéntalo largo y aleatorio (openssl rand -hex 32)
