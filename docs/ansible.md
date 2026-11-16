@@ -135,6 +135,8 @@ Sobre el clúster actual, lo normal es que casi todo salga `ok` (ya estaba bien)
 
 | Síntoma | Causa | Solución |
 |---|---|---|
+| `Failed to update apt cache` sin más detalle | Un repositorio de terceros con la clave de firma caducada (en el PC, el de HashiCorp). `apt update` a mano solo avisa, pero Ansible lo trata como error | Renovar la clave del repositorio (`sudo apt update` muestra cuál falla) |
+| Los Secrets salían `changed` en cada ejecución | Se enviaban con `stringData`, que Kubernetes guarda como `data`: `kubectl apply` veía siempre una diferencia | Se envían con `data` en base64 |
 | `Timed out waiting for become success or become password prompt` en el PC | Ubuntu 25.10+ usa **sudo-rs** como `sudo`, y su pregunta de contraseña no es la que Ansible espera | El PC usa el `sudo` clásico, que Ubuntu mantiene como `sudo.ws` ([`host_vars/nexcore.yml`](../ansible/host_vars/nexcore.yml)) |
 
 ## Reconstruir desde cero
