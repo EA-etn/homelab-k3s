@@ -37,22 +37,22 @@ on the cluster**.
 | 🚨 **Incident response** | Alerts reach Telegram with a link to the [runbook](docs/runbooks/README.md) for that alert. A [dead man's switch](docs/alerting.md#dead-mans-switch) outside the house warns if alerting itself goes down |
 | 🧪 **Tested alerting** | `promtool` unit tests for every SLO alert and `amtool` checks for routing and the Telegram message, in CI |
 | 📊 **Observability** | kube-prometheus-stack with dashboards as code, 30-day retention and synthetic traffic through the ingress |
-| 🛠️ **Rebuildable** | An [Ansible](docs/ansible.md) playbook builds the nodes, k3s, the Secrets and ArgoCD; ArgoCD does the rest from Git (real rebuild pending) |
+| 🛠️ **Rebuildable** | An [Ansible](docs/ansible.md) playbook builds the nodes, k3s, the Secrets and ArgoCD; ArgoCD does the rest from Git (verified on the live cluster: a second run reports `changed=0`; full rebuild from scratch pending) |
 | 🔐 **No plain-text secrets** | Tokens and passwords live in Kubernetes Secrets, never in Git in clear text. The Ansible Vault that recreates them is encrypted, and both CI and a Git hook refuse an unencrypted one |
 
 ## When something fails
 
-The point of a platform is what happens on a bad day.
+The point of a platform is what happens on a bad day. Every experiment, with its hypothesis and findings: [docs/chaos.md](docs/chaos.md) (Spanish).
 
 | If… | What happens | Evidence |
 |---|---|---|
 | A pod dies | Kubernetes replaces it while the other replica keeps serving | ✅ Chaos test: 300 requests during a pod kill, 0 failed |
 | A node goes down | The replica on the other node keeps serving; the mandatory spread rule ignores the dead node | Seen when the laptop suspended · measured test pending |
 | The node comes back | The Descheduler moves a pod back within 5 minutes: one replica per node again | ✅ `cordon` / `uncordon` test |
-| Errors or latency burn the error budget | A burn-rate alert reaches Telegram with its runbook | ✅ Rules unit-tested in CI · live test pending |
+| Errors or latency burn the error budget | A burn-rate alert reaches Telegram with its runbook | ✅ Chaos test: 20 % of requests failing → critical alert in ~21 min, while pods stayed `Running` |
 | The monitoring host itself goes down | healthchecks.io stops receiving the heartbeat and warns from outside the house | ✅ Heartbeat arriving · power-off test pending |
 | Someone changes the cluster by hand | ArgoCD puts it back as Git says (`selfHeal`) | Configured |
-| A bad version is deployed | The old pods keep serving; `git revert` and ArgoCD rolls back | Chaos test pending |
+| A bad version is deployed | The old pods keep serving; `git revert` and ArgoCD rolls back | ✅ Chaos test: image that does not exist → no user impact, alert in ~10 min, fixed in 3 min with a revert |
 
 ## Repository layout
 
@@ -109,8 +109,9 @@ kubectl apply -f bootstrap/root-app.yaml
 - [x] Dead man's switch: healthchecks.io notifies on Telegram if alerts stop arriving (the PC goes down, power or internet is lost)
 - [x] Descheduler: rebalances `demo-api` across nodes when a node comes back (e.g. after the laptop suspends)
 - [x] Legacy test workloads cleaned up and OpenBao removed (unused, dev mode only)
-- [ ] Chaos engineering: bad deploy, 5xx burn, node power-off (pod kill done)
-- [ ] Ansible: rebuild the homelab from scratch with one command (code ready, real rebuild pending)
+- [ ] Chaos engineering: node power-off (pod kill, bad deploy and 5xx burn done)
+- [x] Ansible: nodes, k3s, Secrets and ArgoCD as code, verified idempotent on the live cluster
+- [ ] Ansible: rebuild the homelab from scratch with one command
 
 ## License
 
