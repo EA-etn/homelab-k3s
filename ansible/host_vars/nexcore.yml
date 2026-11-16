@@ -1,0 +1,5 @@
+# Ubuntu 25.10+ usa sudo-rs como sudo por defecto, y su pregunta de contraseña no es la que
+# Ansible espera: la tarea se queda esperando hasta agotar el tiempo ("Timed out waiting for
+# become success or become password prompt"). Ubuntu mantiene el sudo clásico como sudo.ws.
+# La Pi (Ubuntu 24.04) usa el sudo clásico y no necesita esto.
+ansible_become_exe: sudo.ws
