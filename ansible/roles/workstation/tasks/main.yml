@@ -1,10 +1,12 @@
 # Deja el PC listo para trabajar con el clúster: nombres en /etc/hosts y kubectl configurado.
 
+# Un nombre por línea: si el nombre ya está (con cualquier IP), se corrige esa línea; si no, se añade
 - name: Nombres del homelab en /etc/hosts (apuntan a la Pi; Traefik escucha en los dos nodos)
   ansible.builtin.lineinfile:
     path: /etc/hosts
-    regexp: '\s{{ homelab_hostnames[0] | regex_escape }}(\s|$)'
-    line: "{{ k3s_server_ip }} {{ homelab_hostnames | join(' ') }}"
+    regexp: '^\S+\s+{{ item | regex_escape }}\s*$'
+    line: "{{ k3s_server_ip }} {{ item }}"
+  loop: "{{ homelab_hostnames }}"
 
 - name: Leer el kubeconfig del servidor
   ansible.builtin.slurp:
