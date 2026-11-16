@@ -1,2 +1,5 @@
 # Usuario del PC que usa kubectl (dueño de ~/.kube/config): quien ejecuta el playbook
 workstation_user: "{{ lookup('ansible.builtin.env', 'USER') }}"
+
+# Nombre del clúster, del contexto y del usuario en ~/.kube/config (k3s los llama "default")
+workstation_kube_context: devops-lab
