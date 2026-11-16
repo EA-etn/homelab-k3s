@@ -1,0 +1,4 @@
+# La contraseña de sudo de la Pi es distinta de la del PC. --ask-become-pass solo pide una
+# (la del PC); la de la Pi sale del vault cifrado. Una variable de inventario tiene prioridad
+# sobre lo que se escribe en --ask-become-pass, así que cada máquina usa la suya.
+ansible_become_password: "{{ vault_become_password_pi }}"
