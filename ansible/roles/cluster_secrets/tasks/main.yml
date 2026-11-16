@@ -16,9 +16,11 @@
 - name: Crear o actualizar cada Secret
   ansible.builtin.command:
     cmd: k3s kubectl apply -f -
+    # "data" (en base64) y no "stringData": Kubernetes guarda stringData como data, así que
+    # kubectl apply veía siempre una diferencia y la tarea salía "changed" en cada ejecución
     stdin: "{{ {'apiVersion': 'v1', 'kind': 'Secret', 'type': 'Opaque',
                 'metadata': {'name': item.name, 'namespace': item.namespace},
-                'stringData': item.data} | to_json }}"
+                'data': dict(item.data.keys() | zip(item.data.values() | map('string') | map('b64encode')))} | to_json }}"
   loop: "{{ cluster_secrets_list }}"
   loop_control:
     label: "{{ item.namespace }}/{{ item.name }}"
