@@ -25,7 +25,9 @@
 # Es una credencial del clúster: solo la lee tu usuario, y se guarda copia si ya existía
 - name: Guardar el kubeconfig apuntando a la Pi
   ansible.builtin.copy:
-    content: "{{ workstation_kubeconfig.content | b64decode | replace('127.0.0.1', k3s_server_ip) }}"
+    # k3s llama "default" al clúster, al contexto y al usuario: se renombran a workstation_kube_context
+    content: "{{ workstation_kubeconfig.content | b64decode | replace('127.0.0.1', k3s_server_ip)
+      | regex_replace('(?m)^(\\s*(?:- )?(?:name|cluster|user|current-context)): default$', '\\1: ' + workstation_kube_context) }}"
     dest: "~{{ workstation_user }}/.kube/config"
     owner: "{{ workstation_user }}"
     mode: "0600"
