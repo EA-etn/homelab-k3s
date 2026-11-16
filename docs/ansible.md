@@ -131,6 +131,12 @@ ansible-playbook site.yml --ask-become-pass --ask-vault-pass
 
 Sobre el clúster actual, lo normal es que casi todo salga `ok` (ya estaba bien) y nada `changed`.
 
+## Problemas conocidos
+
+| Síntoma | Causa | Solución |
+|---|---|---|
+| `Timed out waiting for become success or become password prompt` en el PC | Ubuntu 25.10+ usa **sudo-rs** como `sudo`, y su pregunta de contraseña no es la que Ansible espera | El PC usa el `sudo` clásico, que Ubuntu mantiene como `sudo.ws` ([`host_vars/nexcore.yml`](../ansible/host_vars/nexcore.yml)) |
+
 ## Reconstruir desde cero
 
 1. Grabar Ubuntu en la Pi y en el PC, con la misma IP fija y SSH activado.
