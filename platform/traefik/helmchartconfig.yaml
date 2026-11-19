@@ -3,6 +3,10 @@
 # réplica sana de demo-api en el PC: no quedaba nadie para recibirlas.
 #
 # k3s permite ajustar su Traefik con un HelmChartConfig: 2 copias, una en cada nodo.
+#
+# matchLabelKeys: la regla de reparto cuenta solo los pods de la versión nueva. Sin él contaba
+# también el pod viejo de la Pi, que se iba a borrar, y las 2 copias nuevas acabaron en el PC
+# (el mismo fallo que tuvo demo-api: docs/lessons-learned del repo devsecops-pipeline).
 apiVersion: helm.cattle.io/v1
 kind: HelmChartConfig
 metadata:
@@ -16,6 +20,7 @@ spec:
       - maxSkew: 1
         topologyKey: kubernetes.io/hostname
         whenUnsatisfiable: DoNotSchedule
+        matchLabelKeys: [pod-template-hash]
         labelSelector:
           matchLabels:
             app.kubernetes.io/name: traefik
