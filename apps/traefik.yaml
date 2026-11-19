@@ -1,0 +1,22 @@
+# Ajustes del Traefik que instala k3s (platform/traefik): una copia en cada nodo, para que la
+# entrada al clúster no dependa de una sola máquina.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: traefik
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io/foreground
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/EA-etn/homelab-k3s.git
+    targetRevision: main
+    path: platform/traefik
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
