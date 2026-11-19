@@ -37,7 +37,7 @@ on the cluster**.
 | 🚨 **Incident response** | Alerts reach Telegram with a link to the [runbook](docs/runbooks/README.md) for that alert. A [dead man's switch](docs/alerting.md#dead-mans-switch) outside the house warns if alerting itself goes down |
 | 🧪 **Tested alerting** | `promtool` unit tests for every SLO alert and `amtool` checks for routing and the Telegram message, in CI |
 | 📊 **Observability** | kube-prometheus-stack with dashboards as code, 30-day retention and synthetic traffic through the ingress |
-| 🛠️ **Rebuildable** | An [Ansible](docs/ansible.md) playbook builds the nodes, k3s, the Secrets and ArgoCD; ArgoCD does the rest from Git (verified on the live cluster: a second run reports `changed=0`; full rebuild from scratch pending) |
+| 🛠️ **Rebuildable** | An [Ansible](docs/ansible.md) playbook builds the nodes, k3s, the Secrets and ArgoCD; ArgoCD does the rest from Git (verified: **destroyed and rebuilt from scratch in ~12 minutes** with `reset.yml` + `site.yml`; a second run reports `changed=0`) |
 | 🔐 **No plain-text secrets** | Tokens and passwords live in Kubernetes Secrets, never in Git in clear text. The Ansible Vault that recreates them is encrypted, and both CI and a Git hook refuse an unencrypted one |
 
 ## When something fails
@@ -51,6 +51,7 @@ The point of a platform is what happens on a bad day. Every experiment, with its
 | The node comes back | The Descheduler moves a pod back within 5 minutes: one replica per node again | ✅ `cordon` / `uncordon` test |
 | Errors or latency burn the error budget | A burn-rate alert reaches Telegram with its runbook | ✅ Chaos test: 20 % of requests failing → critical alert in ~21 min, while pods stayed `Running` |
 | The monitoring host itself goes down | healthchecks.io stops receiving the heartbeat and warns from outside the house | ✅ Chaos test: PC powered off → healthchecks.io alerted on Telegram and email |
+| The whole cluster is lost | `reset.yml` + `site.yml` rebuild it: Ansible creates k3s, Secrets and ArgoCD; ArgoCD brings back everything else from Git | ✅ Destroyed and rebuilt: k3s + ArgoCD in 4 min 26 s, every app healthy in ~12 min |
 | Someone changes the cluster by hand | ArgoCD puts it back as Git says (`selfHeal`) | Configured |
 | A bad version is deployed | The old pods keep serving; `git revert` and ArgoCD rolls back | ✅ Chaos test: image that does not exist → no user impact, alert in ~10 min, fixed in 3 min with a revert |
 
@@ -111,7 +112,7 @@ kubectl apply -f bootstrap/root-app.yaml
 - [x] Legacy test workloads cleaned up and OpenBao removed (unused, dev mode only)
 - [x] Chaos engineering: pod kill, bad deploy, 5xx burn and node power-off
 - [x] Ansible: nodes, k3s, Secrets and ArgoCD as code, verified idempotent on the live cluster
-- [ ] Ansible: rebuild the homelab from scratch with one command
+- [x] Ansible: rebuild the homelab from scratch with one command (~12 min to everything healthy)
 
 ## License
 

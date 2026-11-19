@@ -178,6 +178,20 @@ kubectl -n argocd get applications -w    # hasta que todo esté Synced y Healthy
 Y comprobar que todo funciona como antes: `curl http://demo-api.home.arpa/info`, Grafana con sus
 dashboards, una alerta de prueba en Telegram y healthchecks.io en verde.
 
+### Resultado de la primera reconstrucción
+
+| Fase | Tiempo |
+|---|---|
+| `site.yml`: k3s en las dos máquinas, Secrets y ArgoCD | **4 min 26 s**, sin fallos |
+| demo-api responde en `demo-api.home.arpa` | ~7,5 min |
+| Las 6 Applications `Synced` y `Healthy` | **~12 min** |
+
+Traefik quedó con una copia en cada nodo desde el principio: los arreglos del experimento de chaos 4b
+viven en Git y forman parte de la reconstrucción.
+
+La primera vez el agente no se unía: el token de k3s del vault era el del clúster antiguo (ver
+"Problemas conocidos"). Es justo el tipo de fallo que solo aparece reconstruyendo de verdad.
+
 ¿Por qué no Terraform? Terraform **crea máquinas** a través de la API de un proveedor (AWS, Azure…).
 Aquí las máquinas son físicas y ya existen: solo hay que **configurarlas**, que es el trabajo de
 Ansible.
