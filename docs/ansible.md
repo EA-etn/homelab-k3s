@@ -105,9 +105,10 @@ Las contraseñas de `sudo` de la Pi y del PC son distintas: la de la Pi va en el
 (`vault_become_password_pi`, la usa [`host_vars/devops-lab.yml`](../ansible/host_vars/devops-lab.yml)),
 y la del PC se escribe al ejecutar el playbook (`--ask-become-pass`).
 
-Para un clúster que ya existe, `vault_k3s_token` es el token actual del servidor (en la Pi:
-`sudo cat /var/lib/rancher/k3s/server/node-token`). Cópialo directamente al vault: no lo pegues en
-ningún otro sitio.
+`vault_k3s_token` es una cadena larga y aleatoria inventada por ti (`openssl rand -hex 32`). **No**
+copies el contenido de `/var/lib/rancher/k3s/server/node-token`: empieza por `K10<hash>::server:`, y
+ese hash identifica la CA de *ese* clúster. Funciona mientras el clúster existe, pero al reconstruirlo
+se crea una CA nueva y el agente se niega a unirse.
 
 ## Usarlo
 
@@ -137,6 +138,7 @@ Sobre el clúster actual, lo normal es que casi todo salga `ok` (ya estaba bien)
 |---|---|---|
 | `Failed to update apt cache` sin más detalle | Un repositorio de terceros con la clave de firma caducada (en el PC, el de HashiCorp). `apt update` a mano solo avisa, pero Ansible lo trata como error | Renovar la clave del repositorio (`sudo apt update` muestra cuál falla) |
 | Los Secrets salían `changed` en cada ejecución | Se enviaban con `stringData`, que Kubernetes guarda como `data`: `kubectl apply` veía siempre una diferencia | Se envían con `data` en base64 |
+| El agente no se une al reconstruir: `token CA hash does not match the Cluster CA certificate hash` | `vault_k3s_token` era el token completo de `node-token` (`K10<hash>::server:…`), que lleva el hash de la CA del clúster **antiguo** | Poner en el vault una cadena aleatoria simple (`openssl rand -hex 32`), `reset.yml` y `site.yml` |
 | `Timed out waiting for become success or become password prompt` en el PC | Ubuntu 25.10+ usa **sudo-rs** como `sudo`, y su pregunta de contraseña no es la que Ansible espera | El PC usa el `sudo` clásico, que Ubuntu mantiene como `sudo.ws` ([`host_vars/nexcore.yml`](../ansible/host_vars/nexcore.yml)) |
 
 ## Reconstruir desde cero

@@ -13,8 +13,10 @@
 # el playbook con --ask-become-pass.
 vault_become_password_pi: "CAMBIAME"
 
-# Token del clúster k3s. En un clúster existente: sudo cat /var/lib/rancher/k3s/server/node-token (en la Pi)
-# En uno nuevo: invéntalo largo y aleatorio (openssl rand -hex 32)
+# Token del clúster k3s: una cadena larga y aleatoria inventada por ti (openssl rand -hex 32).
+# NO copies el de /var/lib/rancher/k3s/server/node-token: empieza por K10<hash>::server:, y ese
+# hash es el de la CA de ESE clúster. Al reconstruir se crea una CA nueva y el agente se niega a
+# unirse ("token CA hash does not match"). Con una cadena simple vale para cualquier reconstrucción.
 vault_k3s_token: "CAMBIAME"
 
 # Bot de Telegram del homelab (docs/alerting.md)
