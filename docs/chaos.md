@@ -108,7 +108,9 @@ conclusión**.
     de dos hay que revisarlos.
 - **Arreglo:**
   - **Traefik con 2 copias, una en cada nodo**, mediante un `HelmChartConfig` que gestiona ArgoCD
-    ([`platform/traefik/`](../platform/traefik/helmchartconfig.yaml)).
+    ([`platform/traefik/`](../platform/traefik/helmchartconfig.yaml)). El primer intento dejó las 2
+    copias en el PC: la regla de reparto contaba también el pod viejo de la Pi, que se iba a borrar.
+    Se arregló con `matchLabelKeys: [pod-template-hash]`, igual que en demo-api.
   - **Alertmanager usa el DNS del propio nodo** (`dnsPolicy: Default`): solo necesita nombres de
     internet, así que sus avisos ya no dependen de CoreDNS. Lo comprueba el CI
     (`tests/monitoring`).
