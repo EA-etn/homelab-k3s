@@ -11,7 +11,7 @@ conclusión**.
 | 2 | Desplegar una imagen que no existe | ✅ Sin impacto para los usuarios; aviso y vuelta atrás con `git revert` |
 | 3 | Un 20 % de errores 5xx | ✅ Alerta crítica del SLO en ~21 minutos, como predice el cálculo |
 | 4a | Apagar el PC (donde vive el monitoring) | ✅ healthchecks.io avisa desde fuera por Telegram y email |
-| 4b | Apagar la Pi (control plane) | ❌ **Hallazgo:** la entrada (Traefik) y el DNS (CoreDNS) solo vivían en la Pi. Arreglado; falta repetirlo |
+| 4b | Apagar la Pi (control plane) | ⚠️→✅ La entrada (Traefik) y el DNS (CoreDNS) solo vivían en la Pi: 0 % de peticiones y ninguna alerta. Tras el arreglo, `TargetDown` en 10 min y la app responde en parte |
 
 ## 1 · Matar un pod con tráfico
 
@@ -121,5 +121,12 @@ conclusión**.
   - `demo-api.home.arpa` apunta a la IP de la Pi en `/etc/hosts`. Con la Pi apagada se entra por la IP
     del PC. En una empresa: 3 nodos de control plane y una IP virtual (kube-vip, MetalLB) que salta al
     nodo vivo.
-- **Pendiente:** repetir el apagado con el arreglo. Se espera que llegue `TargetDown` a Telegram y
-  que parte de las peticiones funcionen por el PC.
+- **Repetición con el arreglo** (Pi apagada a las 21:28):
+  - Traefik, una copia en cada nodo; Alertmanager, con el DNS del nodo y sin errores en sus logs.
+  - 🔴 **`TargetDown` llegó a Telegram a las 21:38**: 10 minutos, lo que espera la regla (`for: 10m`).
+  - **7 de 30 peticiones (23 %) salieron bien** por el PC; antes, 0. Es lo que predice el cálculo: cada
+    petición pasa por dos repartos al 50 % (¿qué Traefik? y ¿qué pod de demo-api?), y sin control
+    plane nadie quita de las listas lo que vivía en la Pi: 50 % × 50 % = 25 %.
+  - Esta vez no hizo falta el dead man's switch: las alertas salieron por el camino normal.
+- **Resultado final:** ✅ las alertas sobreviven a la caída de la Pi. La app sobrevive **en parte**;
+  el resto es el límite de tener un solo control plane.

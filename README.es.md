@@ -47,7 +47,7 @@ Lo que importa de una plataforma es lo que pasa en un mal día. Cada experimento
 | Si… | Qué pasa | Evidencia |
 |---|---|---|
 | Muere un pod | Kubernetes lo sustituye mientras la otra réplica sigue atendiendo | ✅ Test de chaos: 300 peticiones mientras se mataba un pod, 0 fallidas |
-| Cae un nodo | La réplica del otro nodo sigue atendiendo; la regla de reparto obligatoria ignora el nodo caído | ⚠️ Test de chaos: al apagar la Pi se vio que la entrada (Traefik) y el DNS (CoreDNS) solo vivían en ella → 2 copias de Traefik y DNS del nodo para Alertmanager · falta repetirlo |
+| Cae un nodo | La réplica del otro nodo sigue atendiendo; la regla de reparto obligatoria ignora el nodo caído | ✅ Test de chaos: al apagar la Pi se vio que la entrada y el DNS solo vivían en ella (0 % atendido, ninguna alerta). Tras el arreglo: `TargetDown` en Telegram en 10 min y la app atiende en parte; el resto necesita 3 nodos de control plane |
 | El nodo vuelve | El Descheduler devuelve un pod en menos de 5 minutos: otra vez una réplica por nodo | ✅ Test con `cordon` / `uncordon` |
 | Los errores o la latencia queman el presupuesto | Llega a Telegram una alerta por burn rate con su runbook | ✅ Test de chaos: con un 20 % de errores, alerta crítica en ~21 min, mientras los pods seguían `Running` |
 | Cae la propia máquina del monitoring | healthchecks.io deja de recibir la señal de vida y avisa desde fuera de casa | ✅ Test de chaos: PC apagado → healthchecks.io avisó por Telegram y email |
@@ -109,7 +109,7 @@ kubectl apply -f bootstrap/root-app.yaml
 - [x] Dead man's switch: healthchecks.io avisa por Telegram si las alertas dejan de llegar (se apaga el PC, se va la luz o internet)
 - [x] Descheduler: reequilibra `demo-api` entre nodos cuando un nodo vuelve (p. ej. tras suspenderse el portátil)
 - [x] Cargas de prueba antiguas limpiadas y OpenBao retirado (sin uso, solo en modo dev)
-- [ ] Chaos engineering: apagado de un nodo (matar un pod, despliegue roto y quema por 5xx, hechos)
+- [x] Chaos engineering: matar un pod, despliegue roto, quema por 5xx y apagado de nodos
 - [x] Ansible: nodos, k3s, Secrets y ArgoCD como código, idempotente comprobado en el clúster real
 - [ ] Ansible: reconstruir el homelab desde cero con un comando
 
