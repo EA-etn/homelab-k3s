@@ -141,11 +141,44 @@ Sobre el clúster actual, lo normal es que casi todo salga `ok` (ya estaba bien)
 
 ## Reconstruir desde cero
 
-1. Grabar Ubuntu en la Pi y en el PC, con la misma IP fija y SSH activado.
-2. Copiar la clave SSH a la Pi (paso 2 de la puesta en marcha).
-3. Clonar este repo en el PC e instalar Ansible.
-4. Ejecutar el playbook. Tarda unos 15–20 minutos.
-5. Esperar a que ArgoCD sincronice: `kubectl -n argocd get applications`.
+Hay dos niveles de "desde cero":
+
+| Nivel | Qué se borra | Cómo |
+|---|---|---|
+| **El clúster** | k3s y todo lo que vive en él; Ubuntu se queda | `reset.yml` (abajo) |
+| Las máquinas | Todo, incluido Ubuntu | Grabar Ubuntu de nuevo, con la misma IP fija y SSH; copiar la clave SSH a la Pi |
+
+En los dos casos se levanta igual: con `site.yml`.
+
+### Borrar el clúster: `reset.yml`
+
+Es el "destroy" del homelab: ejecuta los desinstaladores que deja k3s (`k3s-agent-uninstall.sh` en
+el PC y `k3s-uninstall.sh` en la Pi). Antes de borrar nada pide escribir `destruir`.
+
+```bash
+cd ansible
+ansible-playbook reset.yml --ask-become-pass --ask-vault-pass
+```
+
+Se pierde lo que no está en Git: las métricas de Prometheus. Todo lo demás vuelve solo: los Secrets
+salen del vault, y las apps, alertas y dashboards, de Git a través de ArgoCD.
+
+Mientras el clúster no existe, healthchecks.io avisará de que el monitoring está caído: es lo
+esperado.
+
+### Volver a levantarlo, cronometrado
+
+```bash
+time ansible-playbook site.yml --ask-become-pass --ask-vault-pass
+kubectl -n argocd get applications -w    # hasta que todo esté Synced y Healthy (Ctrl+C para salir)
+```
+
+Y comprobar que todo funciona como antes: `curl http://demo-api.home.arpa/info`, Grafana con sus
+dashboards, una alerta de prueba en Telegram y healthchecks.io en verde.
+
+¿Por qué no Terraform? Terraform **crea máquinas** a través de la API de un proveedor (AWS, Azure…).
+Aquí las máquinas son físicas y ya existen: solo hay que **configurarlas**, que es el trabajo de
+Ansible.
 
 ## Actualizar k3s
 
