@@ -60,6 +60,10 @@ spec:
         alertmanager:
           alertmanagerSpec:
             nodeSelector: {homelab/role: worker}
+            # DNS del propio nodo, no el del clúster: CoreDNS tiene una sola copia, en la Pi. Al
+            # apagarla, Alertmanager no encontraba api.telegram.org ni hc-ping.com y ninguna alerta
+            # salía de casa (experimento 4 de docs/chaos.md). Solo necesita nombres de internet.
+            dnsPolicy: Default
             resources:
               requests: {cpu: 10m, memory: 32Mi}
             # Credenciales que NO están en Git: Secrets creados a mano (docs/alerting.md),

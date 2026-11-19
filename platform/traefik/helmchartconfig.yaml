@@ -1,0 +1,22 @@
+# Traefik, la entrada HTTP del clúster, lo instala k3s con una sola copia, que acababa en la Pi.
+# Al apagar la Pi (experimento 4 de docs/chaos.md) fallaron 30 de 30 peticiones, aunque había una
+# réplica sana de demo-api en el PC: no quedaba nadie para recibirlas.
+#
+# k3s permite ajustar su Traefik con un HelmChartConfig: 2 copias, una en cada nodo.
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: traefik
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    deployment:
+      replicas: 2
+    topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: DoNotSchedule
+        labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: traefik
+            app.kubernetes.io/instance: traefik-kube-system

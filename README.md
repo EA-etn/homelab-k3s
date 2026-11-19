@@ -47,10 +47,10 @@ The point of a platform is what happens on a bad day. Every experiment, with its
 | If… | What happens | Evidence |
 |---|---|---|
 | A pod dies | Kubernetes replaces it while the other replica keeps serving | ✅ Chaos test: 300 requests during a pod kill, 0 failed |
-| A node goes down | The replica on the other node keeps serving; the mandatory spread rule ignores the dead node | Seen when the laptop suspended · measured test pending |
+| A node goes down | The replica on the other node keeps serving; the mandatory spread rule ignores the dead node | ⚠️ Chaos test: powering off the Pi showed that ingress (Traefik) and DNS (CoreDNS) only ran there → 2 Traefik replicas and node DNS for Alertmanager · retest pending |
 | The node comes back | The Descheduler moves a pod back within 5 minutes: one replica per node again | ✅ `cordon` / `uncordon` test |
 | Errors or latency burn the error budget | A burn-rate alert reaches Telegram with its runbook | ✅ Chaos test: 20 % of requests failing → critical alert in ~21 min, while pods stayed `Running` |
-| The monitoring host itself goes down | healthchecks.io stops receiving the heartbeat and warns from outside the house | ✅ Heartbeat arriving · power-off test pending |
+| The monitoring host itself goes down | healthchecks.io stops receiving the heartbeat and warns from outside the house | ✅ Chaos test: PC powered off → healthchecks.io alerted on Telegram and email |
 | Someone changes the cluster by hand | ArgoCD puts it back as Git says (`selfHeal`) | Configured |
 | A bad version is deployed | The old pods keep serving; `git revert` and ArgoCD rolls back | ✅ Chaos test: image that does not exist → no user impact, alert in ~10 min, fixed in 3 min with a revert |
 

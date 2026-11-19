@@ -47,10 +47,10 @@ Lo que importa de una plataforma es lo que pasa en un mal día. Cada experimento
 | Si… | Qué pasa | Evidencia |
 |---|---|---|
 | Muere un pod | Kubernetes lo sustituye mientras la otra réplica sigue atendiendo | ✅ Test de chaos: 300 peticiones mientras se mataba un pod, 0 fallidas |
-| Cae un nodo | La réplica del otro nodo sigue atendiendo; la regla de reparto obligatoria ignora el nodo caído | Visto al suspenderse el portátil · falta el test con medición |
+| Cae un nodo | La réplica del otro nodo sigue atendiendo; la regla de reparto obligatoria ignora el nodo caído | ⚠️ Test de chaos: al apagar la Pi se vio que la entrada (Traefik) y el DNS (CoreDNS) solo vivían en ella → 2 copias de Traefik y DNS del nodo para Alertmanager · falta repetirlo |
 | El nodo vuelve | El Descheduler devuelve un pod en menos de 5 minutos: otra vez una réplica por nodo | ✅ Test con `cordon` / `uncordon` |
 | Los errores o la latencia queman el presupuesto | Llega a Telegram una alerta por burn rate con su runbook | ✅ Test de chaos: con un 20 % de errores, alerta crítica en ~21 min, mientras los pods seguían `Running` |
-| Cae la propia máquina del monitoring | healthchecks.io deja de recibir la señal de vida y avisa desde fuera de casa | ✅ La señal llega · falta la prueba de apagado |
+| Cae la propia máquina del monitoring | healthchecks.io deja de recibir la señal de vida y avisa desde fuera de casa | ✅ Test de chaos: PC apagado → healthchecks.io avisó por Telegram y email |
 | Alguien cambia el clúster a mano | ArgoCD lo deja como dice Git (`selfHeal`) | Configurado |
 | Se despliega una versión mala | Los pods viejos siguen atendiendo; `git revert` y ArgoCD vuelve atrás | ✅ Test de chaos: imagen inexistente → sin impacto para los usuarios, aviso en ~10 min, arreglado en 3 min con un revert |
 
