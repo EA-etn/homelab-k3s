@@ -37,7 +37,7 @@ se ejecuta en el clúster**.
 | 🚨 **Respuesta a incidentes** | Las alertas llegan a Telegram con el enlace al [runbook](docs/runbooks/README.md) de esa alerta. Un [dead man's switch](docs/alerting.md#dead-mans-switch) fuera de casa avisa si lo que cae es el propio sistema de alertas |
 | 🧪 **Alertas con tests** | Tests unitarios con `promtool` para cada alerta de SLO y comprobaciones con `amtool` de las rutas y del mensaje de Telegram, en el CI |
 | 📊 **Observabilidad** | kube-prometheus-stack con dashboards como código, 30 días de retención y tráfico sintético a través del Ingress |
-| 🛠️ **Reconstruible** | Un playbook de [Ansible](docs/ansible.md) monta los nodos, k3s, los Secrets y ArgoCD; ArgoCD hace el resto desde Git (comprobado en el clúster real: una segunda ejecución da `changed=0`; falta la reconstrucción desde cero) |
+| 🛠️ **Reconstruible** | Un playbook de [Ansible](docs/ansible.md) monta los nodos, k3s, los Secrets y ArgoCD; ArgoCD hace el resto desde Git (comprobado: **destruido y reconstruido desde cero en ~12 minutos** con `reset.yml` + `site.yml`; una segunda ejecución da `changed=0`) |
 | 🔐 **Sin secretos en claro** | Los tokens y contraseñas viven en Secrets de Kubernetes, nunca en Git en claro. El Ansible Vault que los recrea va cifrado, y tanto el CI como un hook de Git rechazan uno sin cifrar |
 
 ## Cuando algo falla
@@ -51,6 +51,7 @@ Lo que importa de una plataforma es lo que pasa en un mal día. Cada experimento
 | El nodo vuelve | El Descheduler devuelve un pod en menos de 5 minutos: otra vez una réplica por nodo | ✅ Test con `cordon` / `uncordon` |
 | Los errores o la latencia queman el presupuesto | Llega a Telegram una alerta por burn rate con su runbook | ✅ Test de chaos: con un 20 % de errores, alerta crítica en ~21 min, mientras los pods seguían `Running` |
 | Cae la propia máquina del monitoring | healthchecks.io deja de recibir la señal de vida y avisa desde fuera de casa | ✅ Test de chaos: PC apagado → healthchecks.io avisó por Telegram y email |
+| Se pierde el clúster entero | `reset.yml` + `site.yml` lo reconstruyen: Ansible crea k3s, los Secrets y ArgoCD; ArgoCD trae el resto desde Git | ✅ Destruido y reconstruido: k3s + ArgoCD en 4 min 26 s, todas las apps sanas en ~12 min |
 | Alguien cambia el clúster a mano | ArgoCD lo deja como dice Git (`selfHeal`) | Configurado |
 | Se despliega una versión mala | Los pods viejos siguen atendiendo; `git revert` y ArgoCD vuelve atrás | ✅ Test de chaos: imagen inexistente → sin impacto para los usuarios, aviso en ~10 min, arreglado en 3 min con un revert |
 
@@ -111,7 +112,7 @@ kubectl apply -f bootstrap/root-app.yaml
 - [x] Cargas de prueba antiguas limpiadas y OpenBao retirado (sin uso, solo en modo dev)
 - [x] Chaos engineering: matar un pod, despliegue roto, quema por 5xx y apagado de nodos
 - [x] Ansible: nodos, k3s, Secrets y ArgoCD como código, idempotente comprobado en el clúster real
-- [ ] Ansible: reconstruir el homelab desde cero con un comando
+- [x] Ansible: reconstruir el homelab desde cero con un comando (~12 min hasta tenerlo todo sano)
 
 ## Licencia
 
