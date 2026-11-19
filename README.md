@@ -47,7 +47,7 @@ The point of a platform is what happens on a bad day. Every experiment, with its
 | If… | What happens | Evidence |
 |---|---|---|
 | A pod dies | Kubernetes replaces it while the other replica keeps serving | ✅ Chaos test: 300 requests during a pod kill, 0 failed |
-| A node goes down | The replica on the other node keeps serving; the mandatory spread rule ignores the dead node | ⚠️ Chaos test: powering off the Pi showed that ingress (Traefik) and DNS (CoreDNS) only ran there → 2 Traefik replicas and node DNS for Alertmanager · retest pending |
+| A node goes down | The replica on the other node keeps serving; the mandatory spread rule ignores the dead node | ✅ Chaos test: powering off the Pi showed that ingress and DNS only ran there (0 % served, no alert). After the fix: `TargetDown` on Telegram in 10 min and the app partly served; the rest needs 3 control-plane nodes |
 | The node comes back | The Descheduler moves a pod back within 5 minutes: one replica per node again | ✅ `cordon` / `uncordon` test |
 | Errors or latency burn the error budget | A burn-rate alert reaches Telegram with its runbook | ✅ Chaos test: 20 % of requests failing → critical alert in ~21 min, while pods stayed `Running` |
 | The monitoring host itself goes down | healthchecks.io stops receiving the heartbeat and warns from outside the house | ✅ Chaos test: PC powered off → healthchecks.io alerted on Telegram and email |
@@ -109,7 +109,7 @@ kubectl apply -f bootstrap/root-app.yaml
 - [x] Dead man's switch: healthchecks.io notifies on Telegram if alerts stop arriving (the PC goes down, power or internet is lost)
 - [x] Descheduler: rebalances `demo-api` across nodes when a node comes back (e.g. after the laptop suspends)
 - [x] Legacy test workloads cleaned up and OpenBao removed (unused, dev mode only)
-- [ ] Chaos engineering: node power-off (pod kill, bad deploy and 5xx burn done)
+- [x] Chaos engineering: pod kill, bad deploy, 5xx burn and node power-off
 - [x] Ansible: nodes, k3s, Secrets and ArgoCD as code, verified idempotent on the live cluster
 - [ ] Ansible: rebuild the homelab from scratch with one command
 
