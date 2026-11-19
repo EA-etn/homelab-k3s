@@ -153,11 +153,11 @@ En los dos casos se levanta igual: con `site.yml`.
 ### Borrar el clúster: `reset.yml`
 
 Es el "destroy" del homelab: ejecuta los desinstaladores que deja k3s (`k3s-agent-uninstall.sh` en
-el PC y `k3s-uninstall.sh` en la Pi). Antes de borrar nada pide escribir `destruir`.
+el PC y `k3s-uninstall.sh` en la Pi). Sin `-e confirmar=destruir` se cancela sin tocar nada.
 
 ```bash
 cd ansible
-ansible-playbook reset.yml --ask-become-pass --ask-vault-pass
+ansible-playbook reset.yml --ask-become-pass --ask-vault-pass -e confirmar=destruir
 ```
 
 Se pierde lo que no está en Git: las métricas de Prometheus. Todo lo demás vuelve solo: los Secrets

@@ -1,7 +1,10 @@
 # Borra el clúster entero: el "destroy" del homelab. Lo contrario de site.yml.
 #
 #   cd ansible
-#   ansible-playbook reset.yml --ask-become-pass --ask-vault-pass
+#   ansible-playbook reset.yml --ask-become-pass --ask-vault-pass -e confirmar=destruir
+#
+# Sin "-e confirmar=destruir" se cancela sin tocar nada (la confirmación va en el comando y no en
+# una pregunta: en algunas terminales la pregunta de Ansible no esperaba a que se escribiera).
 #
 # Ejecuta los desinstaladores que dejó k3s: primero los agentes y después el servidor. Se borra
 # todo lo que vive en el clúster (pods, ArgoCD, Secrets, volúmenes, las métricas de Prometheus).
@@ -13,15 +16,11 @@
   hosts: localhost
   connection: local
   gather_facts: false
-  vars_prompt:
-    - name: reset_confirmation
-      prompt: "Se borrará el clúster entero (pods, ArgoCD, Secrets, métricas). Escribe 'destruir' para seguir"
-      private: false
   tasks:
     - name: Parar si no se escribió 'destruir'
       ansible.builtin.assert:
-        that: reset_confirmation == 'destruir'
-        fail_msg: "Cancelado: no se ha borrado nada."
+        that: (confirmar | default('')) == 'destruir'
+        fail_msg: "Cancelado: no se ha borrado nada. Para borrar el clúster, añade -e confirmar=destruir"
         success_msg: "Confirmado."
 
 - name: 1. Desinstalar los agentes (workers)
