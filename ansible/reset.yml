@@ -10,7 +10,8 @@
 # Para volver a levantarlo: ansible-playbook site.yml --ask-become-pass --ask-vault-pass
 
 - name: 0. Confirmar antes de borrar nada
-  hosts: all
+  hosts: localhost
+  connection: local
   gather_facts: false
   vars_prompt:
     - name: reset_confirmation
@@ -22,7 +23,6 @@
         that: reset_confirmation == 'destruir'
         fail_msg: "Cancelado: no se ha borrado nada."
         success_msg: "Confirmado."
-      run_once: true
 
 - name: 1. Desinstalar los agentes (workers)
   hosts: k3s_agents
