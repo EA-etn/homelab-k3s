@@ -98,8 +98,10 @@ jobs:
       - name: Instalar Ansible
         run: pip install ansible-core==2.22.0 ansible-lint==26.11.0
 
-      - name: Sintaxis del playbook
-        run: ansible-playbook site.yml --syntax-check
+      - name: Sintaxis de los playbooks
+        run: |
+          ansible-playbook site.yml --syntax-check
+          ansible-playbook reset.yml --syntax-check
 
       - name: ansible-lint
         run: ansible-lint
