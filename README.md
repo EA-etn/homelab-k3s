@@ -97,23 +97,6 @@ kubectl apply -f bootstrap/root-app.yaml
 ```
 </details>
 
-## Roadmap
-
-- [x] k3s control plane on a Raspberry Pi 4 booting from SSD
-- [x] ArgoCD installed
-- [x] Laptop joined as an amd64 worker
-- [x] App of Apps: the cluster managed from this repo
-- [x] `demo-api` deployed across both nodes (one replica per architecture)
-- [x] Observability: Prometheus, Grafana and alerts for `demo-api`
-- [x] SLOs for `demo-api`: 99.5 % availability and 99 % under 100 ms, multi-window burn-rate alerts with unit tests
-- [x] Alerts to Telegram with a runbook link, routing tested in CI
-- [x] Dead man's switch: healthchecks.io notifies on Telegram if alerts stop arriving (the PC goes down, power or internet is lost)
-- [x] Descheduler: rebalances `demo-api` across nodes when a node comes back (e.g. after the laptop suspends)
-- [x] Legacy test workloads cleaned up and OpenBao removed (unused, dev mode only)
-- [x] Chaos engineering: pod kill, bad deploy, 5xx burn and node power-off
-- [x] Ansible: nodes, k3s, Secrets and ArgoCD as code, verified idempotent on the live cluster
-- [x] Ansible: rebuild the homelab from scratch with one command (~12 min to everything healthy)
-
 ## License
 
 [MIT](LICENSE)
