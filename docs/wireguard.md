@@ -65,6 +65,9 @@ de la VPN, y `net.ipv4.ip_forward = 1` activa el reenvío.
    ansible-playbook site.yml --ask-become-pass --ask-vault-pass
    ```
 
+   En la simulación, la primera vez, `PublicKey =` sale vacío y el arranque de WireGuard se salta:
+   el paquete y las claves aún no existen. Se rellenan en la ejecución de verdad.
+
    El rol termina comprobando que **cada máquina llega a todas las demás** por la VPN (`ping` a cada
    `10.10.0.x`).
 

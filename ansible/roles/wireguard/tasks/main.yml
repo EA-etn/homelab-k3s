@@ -10,6 +10,7 @@
     state: present
     update_cache: true
     cache_valid_time: 3600
+  register: wireguard_apt
 
 - name: Crear /etc/wireguard (solo root)
   ansible.builtin.file:
@@ -62,6 +63,9 @@
     name: "wg-quick@{{ wireguard_interface }}"
     state: started
     enabled: true
+  # En una simulación sobre una máquina sin WireGuard, el paquete no se instala de verdad y el
+  # servicio aún no existe
+  when: not (ansible_check_mode and wireguard_apt is changed)
 
 - name: Aplicar los cambios pendientes antes de comprobar
   ansible.builtin.meta: flush_handlers
