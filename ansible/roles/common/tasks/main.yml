@@ -1,5 +1,35 @@
 # Lo que necesita cualquier máquina del homelab antes de instalar k3s.
 
+# Cada máquina se llama como en el inventario (las VPS venían como "racknerd-…")
+- name: Poner el hostname del inventario
+  ansible.builtin.hostname:
+    name: "{{ inventory_hostname }}"
+
+# sudo y otros programas buscan el propio nombre en /etc/hosts: sin esta línea, cada sudo tarda
+# unos segundos y avisa de "unable to resolve host"
+- name: El propio nombre en /etc/hosts
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: '^127\.0\.1\.1\s'
+    line: "127.0.1.1 {{ inventory_hostname }}"
+
+# Si la imagen de la VPS usa cloud-init, que no devuelva el nombre antiguo al reiniciar
+- name: Ver si hay cloud-init
+  ansible.builtin.stat:
+    path: /etc/cloud/cloud.cfg
+  register: common_cloud_init
+
+- name: Que cloud-init respete el hostname
+  ansible.builtin.copy:
+    dest: /etc/cloud/cloud.cfg.d/99-homelab-hostname.cfg
+    content: |
+      # Gestionado por Ansible (homelab-k3s/ansible/roles/common)
+      preserve_hostname: true
+    owner: root
+    group: root
+    mode: "0644"
+  when: common_cloud_init.stat.exists
+
 - name: Instalar los paquetes básicos
   ansible.builtin.apt:
     name: "{{ common_packages }}"
