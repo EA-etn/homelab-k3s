@@ -34,6 +34,12 @@
   register: firewall_wg_rule
   changed_when: "'Skipping' not in firewall_wg_rule.stdout"
 
+- name: Confiar en las redes internas de k3s (pods y Services)
+  ansible.builtin.command: ufw allow from {{ item }}
+  loop: "{{ firewall_trusted_sources }}"
+  register: firewall_k3s_rule
+  changed_when: "'Skipping' not in firewall_k3s_rule.stdout"
+
 # En el hub, el tráfico entre dos máquinas de la VPN entra por wg0 y sale por wg0
 - name: Dejar pasar el tráfico entre máquinas de la VPN (solo el hub)
   ansible.builtin.command: ufw route allow in on wg0 out on wg0

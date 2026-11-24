@@ -1,7 +1,7 @@
 # Deja el PC listo para trabajar con el clúster: nombres en /etc/hosts y kubectl configurado.
 
 # Un nombre por línea: si el nombre ya está (con cualquier IP), se corrige esa línea; si no, se añade
-- name: Nombres del homelab en /etc/hosts (apuntan a la Pi; Traefik escucha en los dos nodos)
+- name: Nombres del homelab en /etc/hosts (apuntan a la Pi por la VPN; Traefik escucha en los dos nodos)
   ansible.builtin.lineinfile:
     path: /etc/hosts
     regexp: '^\S+\s+{{ item | regex_escape }}\s*$'
@@ -23,7 +23,7 @@
     mode: "0700"
 
 # Es una credencial del clúster: solo la lee tu usuario, y se guarda copia si ya existía
-- name: Guardar el kubeconfig apuntando a la Pi
+- name: Guardar el kubeconfig apuntando a la Pi (por la VPN)
   ansible.builtin.copy:
     # k3s llama "default" al clúster, al contexto y al usuario: se renombran a workstation_kube_context
     content: "{{ workstation_kubeconfig.content | b64decode | replace('127.0.0.1', k3s_server_ip)

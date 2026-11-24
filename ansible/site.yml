@@ -32,7 +32,7 @@
   roles:
     - k3s_server
 
-- name: 3. Unir los workers
+- name: 3. Unir los workers (vps-lab)
   hosts: k3s_agents
   become: true
   roles:

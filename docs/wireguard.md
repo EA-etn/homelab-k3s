@@ -78,7 +78,35 @@ de la VPN, y `net.ipv4.ip_forward = 1` activa el reenvío.
    ping -c 3 10.10.0.3
    ```
 
-## Lo que viene después
+## El clúster por la VPN
 
-Este paso solo crea la red. k3s sigue usando la red de casa (`10.9.8.0/24`). Después: `vps-lab` se une
-al clúster como worker por `wg0`, el monitoring se mueve allí y el portátil sale del clúster.
+El clúster pasa a ser **la Pi (control plane) + `vps-lab` (worker)**, y habla solo por `wg0`:
+
+| Ajuste | Dónde | Efecto |
+|---|---|---|
+| `node-ip: 10.10.0.x` | `/etc/rancher/k3s/config.yaml` (roles `k3s_server` y `k3s_agent`) | Cada nodo se anuncia con su IP de la VPN |
+| `flannel-iface: wg0` | El mismo archivo | La red de los pods (VXLAN) viaja dentro del túnel cifrado |
+| `k3s_server_ip: 10.10.0.2` | `group_vars/all/main.yml` | El worker, el kubeconfig y `/etc/hosts` del portátil apuntan a la Pi por la VPN |
+| `ufw allow from 10.42.0.0/16` y `10.43.0.0/16` | Rol `firewall` | Los pods pueden hablar con su propio nodo (kubelet, DNS, métricas) |
+
+- El monitoring y la segunda réplica de demo-api se mudan solos a `vps-lab`: tiene la etiqueta
+  `homelab/role=worker`.
+- El portátil sale del clúster y queda como estación de trabajo. Como `kubectl` y los nombres
+  `*.home.arpa` van por la VPN, **funcionan desde cualquier sitio**, no solo en casa.
+- El portátil vuelve a suspenderse al cerrar la tapa: ya no es un nodo.
+
+### La migración: reconstruir
+
+Cambian las IPs de los nodos, así que en vez de tocar el clúster en marcha se reconstruye (ya
+probado: ~12 min). Desde el portátil, en casa:
+
+```bash
+cd ansible
+ansible-playbook reset.yml --ask-become-pass --ask-vault-pass -e confirmar=destruir
+time ansible-playbook site.yml --ask-become-pass --ask-vault-pass
+kubectl get nodes -o wide        # devops-lab y vps-lab, Ready, con IPs 10.10.0.x
+```
+
+`reset.yml` desinstala el agente en **cualquier** máquina que lo tenga, así que también limpia el
+portátil aunque ya no esté en `k3s_agents`. Se pierden las métricas de Prometheus; lo demás vuelve
+desde Git. El estado anterior (todo en casa) queda en la etiqueta `v1.0-casa`.

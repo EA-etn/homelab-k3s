@@ -2,5 +2,10 @@
 firewall_allow:
   - 80/tcp
   - 443/tcp
+# Redes internas de k3s (pods y Services): en un nodo, los pods hablan con el propio nodo (kubelet,
+# métricas, DNS) desde estas direcciones, y ufw los bloquearía. Es lo que pide la documentación de k3s.
+firewall_trusted_sources:
+  - 10.42.0.0/16
+  - 10.43.0.0/16
 # Reglas extra por máquina (variable de host_vars), por ejemplo el puerto de WireGuard en el hub
 firewall_extra_rules: []

@@ -41,6 +41,14 @@
   when: common_laptop_ignore_lid | bool
   notify: Recargar systemd-logind
 
+# Si el portátil deja de ser nodo, vuelve a suspenderse al cerrar la tapa
+- name: Quitar la configuración de la tapa si ya no hace falta
+  ansible.builtin.file:
+    path: /etc/systemd/logind.conf.d/10-homelab.conf
+    state: absent
+  when: not (common_laptop_ignore_lid | bool)
+  notify: Recargar systemd-logind
+
 # Si hubo que reiniciar, que sea ahora y no al final del playbook
 - name: Aplicar los reinicios pendientes
   ansible.builtin.meta: flush_handlers

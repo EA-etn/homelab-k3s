@@ -7,11 +7,11 @@ homelab se puede **reconstruir desde cero** con un comando, o **comprobar** que 
 
 | Capa | Quién la monta |
 |---|---|
-| Ubuntu en la Pi y en el PC | A mano (grabar la imagen y activar SSH): es lo único que no se automatiza |
+| Ubuntu en la Pi, las VPS y el PC | A mano (grabar la imagen y activar SSH): es lo único que no se automatiza |
 | Paquetes, cgroups de la Pi, tapa del portátil | Ansible · rol `common` |
 | Firewall de las VPS | Ansible · rol `firewall` ([wireguard.md](wireguard.md)) |
 | Red privada WireGuard entre la Pi, las VPS y el PC | Ansible · rol `wireguard` ([wireguard.md](wireguard.md)) |
-| k3s: servidor en la Pi y agente en el PC | Ansible · roles `k3s_server` y `k3s_agent` |
+| k3s: servidor en la Pi y agente en `vps-lab`, por la VPN | Ansible · roles `k3s_server` y `k3s_agent` |
 | Secrets del clúster (Telegram, healthchecks.io, Grafana) | Ansible · rol `cluster_secrets`, desde el vault cifrado |
 | ArgoCD y la Application raíz | Ansible · rol `argocd` |
 | demo-api, monitoring, Descheduler, SLOs, dashboards… | **ArgoCD**, desde Git (`apps/`) |
@@ -24,7 +24,7 @@ site.yml
     firewall        → las VPS
     wireguard       → la Pi, las VPS y el PC
  2. k3s_server      → la Pi
- 3. k3s_agent       → el PC
+ 3. k3s_agent       → vps-lab
  4. cluster_secrets → la Pi (crea los Secrets antes de que ArgoCD despliegue monitoring)
     argocd          → la Pi (instala ArgoCD y aplica bootstrap/root-app.yaml)
  5. workstation     → el PC
@@ -159,7 +159,7 @@ En los dos casos se levanta igual: con `site.yml`.
 ### Borrar el clúster: `reset.yml`
 
 Es el "destroy" del homelab: ejecuta los desinstaladores que deja k3s (`k3s-agent-uninstall.sh` en
-el PC y `k3s-uninstall.sh` en la Pi). Sin `-e confirmar=destruir` se cancela sin tocar nada.
+los workers (y en cualquier máquina que aún tenga el agente) y `k3s-uninstall.sh` en la Pi). Sin `-e confirmar=destruir` se cancela sin tocar nada.
 
 ```bash
 cd ansible
@@ -202,5 +202,5 @@ Ansible.
 
 ## Actualizar k3s
 
-Cambia `k3s_version` en `group_vars/all/main.yml` (primero la Pi y el PC deben ir a la misma versión)
+Cambia `k3s_version` en `group_vars/all/main.yml` (la Pi y `vps-lab` deben ir a la misma versión)
 y ejecuta el playbook. El instalador oficial actualiza k3s en su sitio.

@@ -1,5 +1,5 @@
 # Observabilidad: Prometheus, Grafana y Alertmanager (kube-prometheus-stack).
-# Lo pesado corre en el portátil (homelab/role=worker) para no cargar la Raspberry Pi.
+# Lo pesado corre en el worker (homelab/role=worker, la VPS de laboratorio) para no cargar la Raspberry Pi.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
