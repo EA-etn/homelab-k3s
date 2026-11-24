@@ -13,6 +13,10 @@
 # el playbook con --ask-become-pass.
 vault_become_password_pi: "CAMBIAME"
 
+# Contraseñas de sudo del usuario de cada VPS (antonio)
+vault_become_password_vps_lab: "CAMBIAME"
+vault_become_password_vps_estable: "CAMBIAME"
+
 # Token del clúster k3s: una cadena larga y aleatoria inventada por ti (openssl rand -hex 32).
 # NO copies el de /var/lib/rancher/k3s/server/node-token: empieza por K10<hash>::server:, y ese
 # hash es el de la CA de ESE clúster. Al reconstruir se crea una CA nueva y el agente se niega a

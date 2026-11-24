@@ -12,3 +12,9 @@ homelab_hostnames:
   - demo-api.home.arpa
 
 # Los secretos NO van aquí: van cifrados en vault.yml (plantilla: ansible/vault.example.yml; ver docs/ansible.md)
+
+# Red privada WireGuard entre la Pi, las VPS y el PC (roles wireguard y firewall).
+# El hub es la máquina con IP pública que no se rompe en los experimentos.
+wireguard_network: 10.10.0.0/24
+wireguard_port: 51820
+wireguard_hub: vps-estable

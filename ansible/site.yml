@@ -5,7 +5,7 @@
 #   ansible-playbook site.yml --ask-become-pass --ask-vault-pass --check --diff   # simulación
 #   ansible-playbook site.yml --ask-become-pass --ask-vault-pass                  # de verdad
 #
-# Orden: máquinas → servidor → agentes → secretos → ArgoCD → el PC. Desde que se aplica la
+# Orden: máquinas → firewall de las VPS → VPN → servidor → agentes → secretos → ArgoCD → el PC. Desde que se aplica la
 # Application raíz, ArgoCD despliega el resto desde Git (demo-api, monitoring, Descheduler...).
 
 - name: 1. Preparar todas las máquinas
@@ -13,6 +13,18 @@
   become: true
   roles:
     - common
+
+- name: 1b. Firewall en las VPS (tienen IP pública)
+  hosts: vps
+  become: true
+  roles:
+    - firewall
+
+- name: 1c. Red privada WireGuard entre la Pi, las VPS y el PC
+  hosts: wireguard
+  become: true
+  roles:
+    - wireguard
 
 - name: 2. Servidor k3s (control plane) en la Raspberry Pi
   hosts: k3s_server

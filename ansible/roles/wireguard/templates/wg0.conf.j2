@@ -1,0 +1,23 @@
+# Gestionado por Ansible (homelab-k3s/ansible/roles/wireguard). No editar a mano.
+# La clave privada no está aquí: se lee de /etc/wireguard/private.key al levantar la interfaz.
+[Interface]
+Address = {{ wireguard_ip }}/{{ wireguard_network | split('/') | last }}
+PostUp = wg set %i private-key /etc/wireguard/private.key
+{% if inventory_hostname == wireguard_hub %}
+ListenPort = {{ wireguard_port }}
+{% for host in groups['wireguard'] if host != wireguard_hub %}
+
+[Peer]
+# {{ host }}
+PublicKey = {{ hostvars[host].wireguard_public_key }}
+AllowedIPs = {{ hostvars[host].wireguard_ip }}/32
+{% endfor %}
+{% else %}
+
+[Peer]
+# {{ wireguard_hub }} (hub): por él pasa el tráfico hacia el resto de la VPN
+PublicKey = {{ hostvars[wireguard_hub].wireguard_public_key }}
+Endpoint = {{ hostvars[wireguard_hub].wireguard_endpoint }}:{{ wireguard_port }}
+AllowedIPs = {{ wireguard_network }}
+PersistentKeepalive = {{ wireguard_keepalive }}
+{% endif %}
