@@ -7,6 +7,11 @@
 # matchLabelKeys: la regla de reparto cuenta solo los pods de la versión nueva. Sin él contaba
 # también el pod viejo de la Pi, que se iba a borrar, y las 2 copias nuevas acabaron en el PC
 # (el mismo fallo que tuvo demo-api: docs/lessons-learned del repo devsecops-pipeline).
+#
+# externalTrafficPolicy: Local: cada nodo entrega la petición a su propia copia de Traefik, y
+# Traefik ve la IP real de quien llama (con "Cluster" la veía cambiada por una IP interna). Así
+# puede distinguir una visita desde internet de una desde la VPN: Grafana solo acepta la VPN
+# (platform/monitoring/grafana-solo-vpn.yaml). Funciona porque hay una copia en cada nodo.
 apiVersion: helm.cattle.io/v1
 kind: HelmChartConfig
 metadata:
@@ -16,6 +21,9 @@ spec:
   valuesContent: |-
     deployment:
       replicas: 2
+    service:
+      spec:
+        externalTrafficPolicy: Local
     topologySpreadConstraints:
       - maxSkew: 1
         topologyKey: kubernetes.io/hostname

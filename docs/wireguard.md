@@ -95,6 +95,24 @@ El clúster pasa a ser **la Pi (control plane) + `vps-lab` (worker)**, y habla s
   `*.home.arpa` van por la VPN, **funcionan desde cualquier sitio**, no solo en casa.
 - El portátil vuelve a suspenderse al cerrar la tapa: ya no es un nodo.
 
+### Qué se ve desde internet
+
+`vps-lab` tiene IP pública y Traefik escucha en sus puertos 80/443. Tras la migración, cualquiera
+llegaba al login de Grafana enviando `Host: grafana.home.arpa` a esa IP. Se cerró así:
+
+| Pieza | Qué hace |
+|---|---|
+| `externalTrafficPolicy: Local` en Traefik (`platform/traefik`) | Cada nodo entrega la petición a su propia copia de Traefik y Traefik ve la IP real de quien llama |
+| Middleware `grafana-solo-vpn` (`platform/monitoring`) | Grafana solo acepta la VPN (`10.10.0.0/24`) y la red de casa; el resto recibe **403** |
+| demo-api | Sigue pública: es la demo |
+
+Se comprueba desde fuera de la VPN y desde dentro:
+
+```bash
+curl -s -o /dev/null -w '%{http_code}\n' -H 'Host: grafana.home.arpa' http://216.45.53.36   # 403
+curl -s -o /dev/null -w '%{http_code}\n' http://grafana.home.arpa                            # 302 (login), por la VPN
+```
+
 ### La migración: reconstruir
 
 Cambian las IPs de los nodos, así que en vez de tocar el clúster en marcha se reconstruye (ya

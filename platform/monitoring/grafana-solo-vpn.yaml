@@ -1,0 +1,17 @@
+# Grafana solo responde a la VPN y a la red de casa. vps-lab tiene IP pública y Traefik escucha en
+# sus puertos 80/443: sin esto, cualquiera en internet llegaba al login de Grafana enviando
+# "Host: grafana.home.arpa" a esa IP.
+#
+# Traefik mira la IP de origen real de la conexión (no la cabecera X-Forwarded-For, que el visitante
+# podría inventarse). Le llega sin cambiar gracias a externalTrafficPolicy: Local
+# (platform/traefik/helmchartconfig.yaml). Lo demás recibe 403 Forbidden.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: grafana-solo-vpn
+  namespace: monitoring
+spec:
+  ipAllowList:
+    sourceRange:
+      - 10.10.0.0/24   # VPN WireGuard (docs/wireguard.md)
+      - 10.9.8.0/24    # red de casa
