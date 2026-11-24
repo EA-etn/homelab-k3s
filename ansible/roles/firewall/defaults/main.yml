@@ -1,0 +1,6 @@
+# Puertos abiertos a internet en todas las VPS (el de SSH se añade solo: el que use sshd)
+firewall_allow:
+  - 80/tcp
+  - 443/tcp
+# Reglas extra por máquina (variable de host_vars), por ejemplo el puerto de WireGuard en el hub
+firewall_extra_rules: []

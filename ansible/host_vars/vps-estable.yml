@@ -1,0 +1,10 @@
+# VPS estable (RackNerd, Ashburn): fuera del clúster. Su contraseña de sudo sale del vault cifrado.
+ansible_become_password: "{{ vault_become_password_vps_estable }}"
+
+# Hub de la red privada WireGuard: escucha en su IP pública y reenvía entre los demás
+wireguard_ip: 10.10.0.1
+wireguard_endpoint: 107.175.134.57
+
+# El firewall abre además el puerto de WireGuard (UDP), solo aquí
+firewall_extra_rules:
+  - "{{ wireguard_port }}/udp"

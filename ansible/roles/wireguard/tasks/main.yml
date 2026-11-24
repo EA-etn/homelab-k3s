@@ -1,0 +1,80 @@
+# Red privada WireGuard: el hub (IP pública) recibe a todos y reenvía entre ellos. La Pi y el PC
+# están detrás del router de casa y son ellos los que llaman al hub: no hay que abrir puertos en casa.
+#
+# Cada máquina genera su propia clave privada y nunca sale de ella: ni en Git, ni en el vault, ni
+# en la configuración. Ansible solo reparte las claves públicas.
+
+- name: Instalar las herramientas de WireGuard
+  ansible.builtin.apt:
+    name: wireguard-tools
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Crear /etc/wireguard (solo root)
+  ansible.builtin.file:
+    path: /etc/wireguard
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+
+- name: Generar la clave privada (solo la primera vez)
+  ansible.builtin.shell: umask 077 && wg genkey > /etc/wireguard/private.key
+  args:
+    creates: /etc/wireguard/private.key
+
+- name: Calcular la clave pública
+  ansible.builtin.shell: wg pubkey < /etc/wireguard/private.key
+  register: wireguard_pubkey
+  changed_when: false
+  check_mode: false
+  # En una simulación sobre una máquina nueva la clave aún no existe
+  failed_when: wireguard_pubkey.rc != 0 and not ansible_check_mode
+
+- name: Compartir la clave pública con las demás máquinas
+  ansible.builtin.set_fact:
+    wireguard_public_key: "{{ wireguard_pubkey.stdout | default('') }}"
+
+- name: Activar el reenvío de paquetes (solo el hub)
+  ansible.builtin.copy:
+    dest: /etc/sysctl.d/90-wireguard.conf
+    content: |
+      # Gestionado por Ansible: el hub reenvía el tráfico entre las máquinas de la VPN
+      net.ipv4.ip_forward = 1
+    owner: root
+    group: root
+    mode: "0644"
+  when: inventory_hostname == wireguard_hub
+  notify: Aplicar el reenvío de paquetes
+
+- name: Escribir la configuración de la VPN
+  ansible.builtin.template:
+    src: wg0.conf.j2
+    dest: "/etc/wireguard/{{ wireguard_interface }}.conf"
+    owner: root
+    group: root
+    mode: "0600"
+  notify: Reiniciar WireGuard
+
+- name: Arrancar WireGuard, también en cada arranque
+  ansible.builtin.systemd_service:
+    name: "wg-quick@{{ wireguard_interface }}"
+    state: started
+    enabled: true
+
+- name: Aplicar los cambios pendientes antes de comprobar
+  ansible.builtin.meta: flush_handlers
+
+# La prueba de verdad: cada máquina llega a todas las demás por la VPN. Entre la Pi y una VPS el
+# tráfico pasa por el hub, así que esto también comprueba el reenvío y el firewall del hub.
+- name: Comprobar que se llega a cada máquina de la VPN
+  ansible.builtin.command: ping -c 3 -W 2 {{ hostvars[item].wireguard_ip }}
+  loop: "{{ groups['wireguard'] | difference([inventory_hostname]) }}"
+  register: wireguard_ping
+  # El primer contacto entre dos máquinas espera a que las dos hayan saludado al hub
+  until: wireguard_ping.rc == 0
+  retries: 5
+  delay: 3
+  changed_when: false
+  when: not ansible_check_mode

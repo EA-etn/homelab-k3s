@@ -9,6 +9,8 @@ homelab se puede **reconstruir desde cero** con un comando, o **comprobar** que 
 |---|---|
 | Ubuntu en la Pi y en el PC | A mano (grabar la imagen y activar SSH): es lo único que no se automatiza |
 | Paquetes, cgroups de la Pi, tapa del portátil | Ansible · rol `common` |
+| Firewall de las VPS | Ansible · rol `firewall` ([wireguard.md](wireguard.md)) |
+| Red privada WireGuard entre la Pi, las VPS y el PC | Ansible · rol `wireguard` ([wireguard.md](wireguard.md)) |
 | k3s: servidor en la Pi y agente en el PC | Ansible · roles `k3s_server` y `k3s_agent` |
 | Secrets del clúster (Telegram, healthchecks.io, Grafana) | Ansible · rol `cluster_secrets`, desde el vault cifrado |
 | ArgoCD y la Application raíz | Ansible · rol `argocd` |
@@ -19,6 +21,8 @@ homelab se puede **reconstruir desde cero** con un comando, o **comprobar** que 
 ```
 site.yml
  1. common          → todas las máquinas
+    firewall        → las VPS
+    wireguard       → la Pi, las VPS y el PC
  2. k3s_server      → la Pi
  3. k3s_agent       → el PC
  4. cluster_secrets → la Pi (crea los Secrets antes de que ArgoCD despliegue monitoring)

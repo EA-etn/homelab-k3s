@@ -1,0 +1,5 @@
+# VPS de laboratorio (RackNerd, Ashburn). Su contraseña de sudo sale del vault cifrado.
+ansible_become_password: "{{ vault_become_password_vps_lab }}"
+
+# IP en la red privada WireGuard (rol wireguard)
+wireguard_ip: 10.10.0.3

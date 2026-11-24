@@ -1,0 +1,61 @@
+# Firewall de las VPS (tienen IP pública): se niega todo lo que entra salvo lo que se abre aquí.
+# La red privada WireGuard (wg0) es de confianza: por ella hablará k3s, y nunca por internet.
+#
+# Cuidado: si el puerto de SSH no estuviera abierto al activar el firewall, Ansible perdería la
+# conexión. Por eso se pregunta a sshd qué puerto usa y se abre ese antes de activar nada.
+
+- name: Instalar ufw
+  ansible.builtin.apt:
+    name: ufw
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Preguntar a sshd en qué puertos escucha
+  ansible.builtin.command: sshd -T
+  register: firewall_sshd
+  changed_when: false
+  check_mode: false
+
+- name: Abrir el puerto de SSH (antes de activar el firewall)
+  ansible.builtin.command: ufw allow {{ item }}/tcp
+  loop: "{{ firewall_sshd.stdout_lines | select('match', '^port ') | map('split', ' ') | map('last') | list }}"
+  register: firewall_ssh_rule
+  changed_when: "'Skipping' not in firewall_ssh_rule.stdout"
+
+- name: Abrir los puertos públicos
+  ansible.builtin.command: ufw allow {{ item }}
+  loop: "{{ firewall_allow + firewall_extra_rules }}"
+  register: firewall_rule
+  changed_when: "'Skipping' not in firewall_rule.stdout"
+
+- name: Confiar en la red privada WireGuard (wg0)
+  ansible.builtin.command: ufw allow in on wg0
+  register: firewall_wg_rule
+  changed_when: "'Skipping' not in firewall_wg_rule.stdout"
+
+# En el hub, el tráfico entre dos máquinas de la VPN entra por wg0 y sale por wg0
+- name: Dejar pasar el tráfico entre máquinas de la VPN (solo el hub)
+  ansible.builtin.command: ufw route allow in on wg0 out on wg0
+  register: firewall_route_rule
+  changed_when: "'Skipping' not in firewall_route_rule.stdout"
+  when: inventory_hostname == wireguard_hub
+
+- name: Ver el estado del firewall
+  ansible.builtin.command: ufw status verbose
+  register: firewall_status
+  changed_when: false
+  check_mode: false
+
+- name: Por defecto, negar lo que entra y permitir lo que sale
+  ansible.builtin.command: ufw default {{ item.policy }} {{ item.direction }}
+  loop:
+    - { policy: deny, direction: incoming }
+    - { policy: allow, direction: outgoing }
+  when: (item.policy ~ ' (' ~ item.direction ~ ')') not in firewall_status.stdout
+  changed_when: true
+
+- name: Activar el firewall
+  ansible.builtin.command: ufw --force enable
+  when: "'Status: active' not in firewall_status.stdout"
+  changed_when: true

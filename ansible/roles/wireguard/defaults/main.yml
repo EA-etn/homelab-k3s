@@ -1,0 +1,5 @@
+# Nombre de la interfaz de la VPN (wg-quick@wg0)
+wireguard_interface: wg0
+# Cada cuánto las máquinas detrás de un router (la Pi, el PC) avisan al hub de que siguen ahí,
+# para que el router no cierre el camino de vuelta
+wireguard_keepalive: 25

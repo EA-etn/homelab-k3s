@@ -3,3 +3,6 @@
 # become success or become password prompt"). Ubuntu mantiene el sudo clásico como sudo.ws.
 # La Pi (Ubuntu 24.04) usa el sudo clásico y no necesita esto.
 ansible_become_exe: sudo.ws
+
+# IP en la red privada WireGuard (rol wireguard)
+wireguard_ip: 10.10.0.4

@@ -1,5 +1,5 @@
 # Las máquinas del homelab. Ansible se ejecuta desde nexcore (el PC), así que nexcore se
-# gestiona en local y la Pi por SSH.
+# gestiona en local, y la Pi y las VPS por SSH.
 all:
   children:
     k3s_server:
@@ -17,4 +17,22 @@ all:
           common_laptop_ignore_lid: true
     workstation:
       hosts:
+        nexcore:
+    # VPS de RackNerd en Ashburn (EE. UU.), con IP pública: llevan firewall (rol firewall)
+    vps:
+      hosts:
+        # Laboratorio: será el worker de k3s (la CPU más moderna de las dos)
+        vps-lab:
+          ansible_host: 216.45.53.36
+          ansible_user: antonio
+        # Estable: fuera del clúster. Hub de la VPN; más adelante, backups y vigilancia externa
+        vps-estable:
+          ansible_host: 107.175.134.57
+          ansible_user: antonio
+    # Red privada WireGuard (10.10.0.0/24): vps-estable es el hub y el resto se conecta a él
+    wireguard:
+      hosts:
+        vps-estable:
+        devops-lab:
+        vps-lab:
         nexcore:
