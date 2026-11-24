@@ -2,5 +2,6 @@
   ansible.builtin.systemd_service:
     name: k3s-agent
     state: restarted
-  # En una simulación sobre una máquina sin k3s, el servicio aún no existe
-  when: not ansible_check_mode or k3s_agent_installed.rc == 0
+  # Solo si k3s ya estaba instalado: una instalación nueva ya arranca con config.yaml (y en una
+  # simulación sobre una máquina sin k3s, el servicio aún no existe)
+  when: k3s_agent_installed.rc == 0

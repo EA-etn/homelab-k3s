@@ -1,5 +1,8 @@
 # Gestionado por Ansible (homelab-k3s/ansible/roles/k3s_agent). k3s lee este archivo al arrancar.
 # El nodo se anuncia con su IP de la VPN y Flannel (la red de los pods) viaja por wg0, cifrado.
+# El nodo se llama como en el inventario, no como el hostname de la máquina (en las VPS es
+# "racknerd-…"): así Ansible lo encuentra por su nombre
+node-name: {{ inventory_hostname }}
 node-ip: {{ wireguard_ip }}
 flannel-iface: {{ k3s_flannel_iface }}
 # Prometheus, Grafana y Alertmanager solo van a los nodos "worker" (se aplica al registrar el nodo)
