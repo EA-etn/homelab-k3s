@@ -1,6 +1,6 @@
 """Comprueba el render real de kube-prometheus-stack con los valores de apps/monitoring.yaml.
 
-Protege lo que un error de edición podría borrar sin que nada falle: el Ingress de Grafana,
+Protege lo que un error de edición podría borrar sin que nada falle: el Ingress de Grafana (solo VPN),
 su contraseña desde un Secret externo, el Secret de Telegram de Alertmanager y dónde corre cada pieza.
 Uso: python3 check_render.py <manifiestos-renderizados.yaml>
 """
@@ -29,6 +29,10 @@ def find(kind, name_part):
 ing = find("Ingress", "grafana")
 hosts = [r.get("host") for i in ing for r in i["spec"].get("rules", [])]
 check("grafana.home.arpa" in hosts, "Ingress de Grafana con host grafana.home.arpa")
+
+mw = [i["metadata"].get("annotations", {}).get("traefik.ingress.kubernetes.io/router.middlewares", "") for i in ing]
+check(any("monitoring-grafana-solo-vpn@kubernetescrd" in m for m in mw),
+      "Grafana solo acepta peticiones desde la VPN (middleware grafana-solo-vpn)")
 
 graf = find("Deployment", "grafana")
 graf_yaml = yaml.safe_dump(graf)

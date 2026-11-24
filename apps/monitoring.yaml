@@ -155,6 +155,10 @@ spec:
             enabled: true
             ingressClassName: traefik
             hosts: [grafana.home.arpa]
+            # Solo desde la VPN o la red de casa: vps-lab tiene IP pública y Traefik escucha en
+            # ella (platform/monitoring/grafana-solo-vpn.yaml). Desde internet: 403
+            annotations:
+              traefik.ingress.kubernetes.io/router.middlewares: monitoring-grafana-solo-vpn@kubernetescrd
           sidecar:
             dashboards:
               searchNamespace: ALL
