@@ -23,8 +23,10 @@
         fail_msg: "Cancelado: no se ha borrado nada. Para borrar el clúster, añade -e confirmar=destruir"
         success_msg: "Confirmado."
 
+# En todas las máquinas que tengan el agente instalado, no solo las de k3s_agents: así también se
+# limpia un nodo que ya salió del inventario (el portátil, al pasar el worker a la VPS)
 - name: 1. Desinstalar los agentes (workers)
-  hosts: k3s_agents
+  hosts: all
   become: true
   gather_facts: false
   tasks:

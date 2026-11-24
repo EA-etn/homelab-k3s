@@ -8,6 +8,24 @@
   failed_when: false
   check_mode: false
 
+- name: Crear /etc/rancher/k3s
+  ansible.builtin.file:
+    path: /etc/rancher/k3s
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+# Antes de instalar: así k3s nace ya con estos ajustes
+- name: Configuración de k3s (IP de la VPN, Flannel por wg0)
+  ansible.builtin.template:
+    src: config.yaml.j2
+    dest: /etc/rancher/k3s/config.yaml
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reiniciar el agente k3s
+
 - name: Comprobar que el servidor responde en el puerto 6443
   ansible.builtin.wait_for:
     host: "{{ k3s_server_ip }}"
@@ -24,8 +42,8 @@
         mode: "0755"
 
     - name: Ejecutar el instalador (agente)
-      ansible.builtin.command: >-
-        /usr/local/src/k3s-install.sh agent --node-label homelab/role={{ k3s_agent_node_role }}
+      # Los ajustes (IP, Flannel, etiqueta) salen de /etc/rancher/k3s/config.yaml
+      ansible.builtin.command: /usr/local/src/k3s-install.sh agent
       environment:
         INSTALL_K3S_VERSION: "{{ k3s_version }}"
         K3S_URL: "https://{{ k3s_server_ip }}:6443"
