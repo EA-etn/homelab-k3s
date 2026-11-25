@@ -144,6 +144,7 @@ Sobre el clúster actual, lo normal es que casi todo salga `ok` (ya estaba bien)
 | Los Secrets salían `changed` en cada ejecución | Se enviaban con `stringData`, que Kubernetes guarda como `data`: `kubectl apply` veía siempre una diferencia | Se envían con `data` en base64 |
 | El agente no se une al reconstruir: `token CA hash does not match the Cluster CA certificate hash` | `vault_k3s_token` era el token completo de `node-token` (`K10<hash>::server:…`), que lleva el hash de la CA del clúster **antiguo** | Poner en el vault una cadena aleatoria simple (`openssl rand -hex 32`), `reset.yml` y `site.yml` |
 | El agente se instala pero `kubectl wait node/vps-lab` dice `NotFound` | k3s llama al nodo como el hostname de la máquina (`racknerd-…` en las VPS), no como en el inventario; y recién instalado tarda unos segundos en registrarse | El rol `common` pone a cada máquina el hostname del inventario (y `node-name` en `/etc/rancher/k3s/config.yaml` por si acaso); la espera se reintenta |
+| En la VPN, el hub falla al escribir `wg0.conf` | Otra máquina de la VPN falló antes de compartir su clave pública (por ejemplo, una contraseña de `sudo` mal escrita) | Arreglar esa máquina y volver a ejecutar `site.yml`: la VPN sigue con la configuración anterior mientras tanto |
 | `Timed out waiting for become success or become password prompt` en el PC | Ubuntu 25.10+ usa **sudo-rs** como `sudo`, y su pregunta de contraseña no es la que Ansible espera | El PC usa el `sudo` clásico, que Ubuntu mantiene como `sudo.ws` ([`host_vars/nexcore.yml`](../ansible/host_vars/nexcore.yml)) |
 
 ## Reconstruir desde cero
@@ -196,6 +197,20 @@ viven en Git y forman parte de la reconstrucción.
 
 La primera vez el agente no se unía: el token de k3s del vault era el del clúster antiguo (ver
 "Problemas conocidos"). Es justo el tipo de fallo que solo aparece reconstruyendo de verdad.
+
+### Segunda reconstrucción: el paso a híbrido (2026-11-24)
+
+El clúster pasó de Pi + portátil a Pi + `vps-lab`, hablando por la VPN ([wireguard.md](wireguard.md)).
+Como cambiaban las IPs de los nodos, se reconstruyó en lugar de tocar el clúster en marcha.
+
+| Intento | Resultado |
+|---|---|
+| 1 · `site.yml` (4 min 24 s) | El agente se unió, pero como `racknerd-5663cd5` (el hostname de la VPS), y la espera por `vps-lab` falló. Arreglo: hostname del inventario y `node-name` (#36) |
+| 2 · `reset.yml` + `site.yml` (6 min 27 s) | Clúster creado: `devops-lab` y `vps-lab` `Ready` con IPs `10.10.0.x`. El portátil falló al principio (contraseña de `sudo` mal escrita) y por eso el hub no pudo escribir su configuración (le faltaba la clave pública del portátil) |
+| 3 · `site.yml` otra vez (3 min 29 s) | `failed=0` en las cuatro máquinas. Las 6 Applications `Synced` y `Healthy`; demo-api respondiendo desde `vps-lab` |
+
+Después apareció el último fallo, que solo se ve con un nodo en internet: Grafana respondía en la IP
+pública de `vps-lab`. Se cerró con #37 (`403` desde internet, `302` por la VPN).
 
 ¿Por qué no Terraform? Terraform **crea máquinas** a través de la API de un proveedor (AWS, Azure…).
 Aquí las máquinas son físicas y ya existen: solo hay que **configurarlas**, que es el trabajo de
