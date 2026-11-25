@@ -8,6 +8,7 @@
 ![k3s](https://img.shields.io/badge/k3s-v1.36-FFC61C?logo=k3s&logoColor=black)
 ![ArgoCD](https://img.shields.io/badge/GitOps-ArgoCD-EF7B4D?logo=argo&logoColor=white)
 ![Raspberry Pi](https://img.shields.io/badge/Raspberry%20Pi%204-arm64-A22846?logo=raspberrypi&logoColor=white)
+![WireGuard](https://img.shields.io/badge/red-WireGuard-88171A?logo=wireguard&logoColor=white)
 
 [English](README.md) · **Español**
 
@@ -15,34 +16,66 @@
 
 ## Qué es
 
-La parte de **plataforma** de mi laboratorio: un clúster k3s en una Raspberry Pi 4 (arm64) y un
-portátil (amd64), donde **Git es la única fuente de verdad**. ArgoCD vigila este repositorio y
+La parte de **plataforma** de mi laboratorio: un clúster k3s con el control plane en una Raspberry
+Pi 4 en casa (arm64) y el worker en una VPS en la nube (amd64), unidos por una red WireGuard cifrada.
+**Git es la única fuente de verdad**. ArgoCD vigila este repositorio y
 mantiene el clúster sincronizado con él.
 
 Las aplicaciones se construyen en otro sitio. [DevSecOps Pipeline](https://github.com/EA-etn/devsecops-pipeline)
 prueba, escanea, firma y publica `demo-api` como imagen multi-arquitectura; este repo decide **qué
 se ejecuta en el clúster**.
 
-<img src="docs/diagrams/es/01-architecture.svg" alt="Arquitectura: los repos de GitHub alimentan a ArgoCD, que sincroniza un clúster k3s en una Raspberry Pi y un PC; Prometheus, Grafana y Alertmanager corren en el PC y avisan por Telegram; healthchecks.io vigila las alertas desde fuera" width="100%">
+```mermaid
+flowchart LR
+  subgraph casa["🏠 Casa"]
+    pi["Raspberry Pi 4 · devops-lab<br/>control plane de k3s · arm64<br/>10.10.0.2"]
+    laptop["Portátil · nexcore<br/>estación de trabajo: kubectl, Ansible<br/>10.10.0.4"]
+  end
+  subgraph nube["☁️ VPS · Ashburn, EE. UU."]
+    hub["vps-estable<br/>hub de WireGuard · fuera del clúster<br/>10.10.0.1"]
+    lab["vps-lab · worker de k3s · amd64<br/>demo-api, Prometheus, Grafana, Alertmanager<br/>10.10.0.3"]
+  end
+  pi <-->|WireGuard| hub
+  lab <-->|WireGuard| hub
+  laptop <-->|WireGuard| hub
+  argo["ArgoCD (en el clúster)"] -.->|sincroniza desde| git["GitHub: este repo"]
+  lab -->|alertas| tg["Telegram"]
+  lab -->|señal de vida| hc["healthchecks.io"]
+```
 
-<sub><a href="https://raw.githubusercontent.com/EA-etn/homelab-k3s/main/docs/diagrams/es/01-architecture.png">🔍 Ver a tamaño completo</a></sub>
+Los nodos hablan solo por la VPN (`wg0`): k3s, Flannel y kubectl nunca cruzan internet en claro. El
+hub vive en una segunda VPS que queda fuera del clúster, así que romper el clúster a propósito nunca
+tumba la red ([docs/wireguard.md](docs/wireguard.md)).
+
+<details>
+<summary>Antes: todo en casa (<code>v1.0-casa</code>)</summary>
+
+<img src="docs/diagrams/es/01-architecture.svg" alt="Arquitectura de v1.0-casa: los repos de GitHub alimentan a ArgoCD, que sincroniza un clúster k3s en una Raspberry Pi y un PC; Prometheus, Grafana y Alertmanager corren en el PC y avisan por Telegram; healthchecks.io vigila las alertas desde fuera" width="100%">
+
+El portátil se suspendía y se movía: cuando se iba, se llevaba la mitad de la app y todo el
+monitoring (experimentos de chaos 4a y 4b). Por eso el worker pasó a una VPS. Release:
+[`v1.0-casa`](https://github.com/EA-etn/homelab-k3s/releases/tag/v1.0-casa).
+</details>
 
 ## Lo más destacado
 
 | | |
 |---|---|
-| ☸️ **Clúster híbrido** | Control plane de k3s en una Raspberry Pi 4 (arm64, arranca desde SSD) + portátil como worker (amd64). La misma imagen multi-arquitectura corre en los dos |
+| ☸️ **Clúster híbrido** | Control plane de k3s en una Raspberry Pi 4 en casa (arm64, arranca desde SSD) + worker en una VPS en la nube (amd64). La misma imagen multi-arquitectura corre en los dos |
+| 🔒 **Red privada** | WireGuard entre casa y la nube, gestionado con Ansible: cada máquina genera su clave privada, que nunca sale de ella. `ufw` en las VPS, y Grafana solo responde a la VPN (`403` desde internet) |
 | 🔄 **GitOps** | App of Apps: un solo `kubectl apply`, todo lo demás sale de `apps/`. Self-heal y prune activados |
 | 🎯 **SLOs** | 99,5 % de disponibilidad y 99 % de peticiones en menos de 100 ms, con presupuesto de errores y alertas multi-ventana por burn rate ([docs/slo.md](docs/slo.md)) |
 | 🚨 **Respuesta a incidentes** | Las alertas llegan a Telegram con el enlace al [runbook](docs/runbooks/README.md) de esa alerta. Un [dead man's switch](docs/alerting.md#dead-mans-switch) fuera de casa avisa si lo que cae es el propio sistema de alertas |
 | 🧪 **Alertas con tests** | Tests unitarios con `promtool` para cada alerta de SLO y comprobaciones con `amtool` de las rutas y del mensaje de Telegram, en el CI |
 | 📊 **Observabilidad** | kube-prometheus-stack con dashboards como código, 30 días de retención y tráfico sintético a través del Ingress |
-| 🛠️ **Reconstruible** | Un playbook de [Ansible](docs/ansible.md) monta los nodos, k3s, los Secrets y ArgoCD; ArgoCD hace el resto desde Git (comprobado: **destruido y reconstruido desde cero en ~12 minutos** con `reset.yml` + `site.yml`; una segunda ejecución da `changed=0`) |
+| 🛠️ **Reconstruible** | Un playbook de [Ansible](docs/ansible.md) monta los nodos, k3s, los Secrets y ArgoCD; ArgoCD hace el resto desde Git (comprobado: **destruido y reconstruido desde cero en ~12 minutos** con `reset.yml` + `site.yml`; una segunda ejecución da `changed=0`). El paso de casa a híbrido fue también una reconstrucción |
 | 🔐 **Sin secretos en claro** | Los tokens y contraseñas viven en Secrets de Kubernetes, nunca en Git en claro. El Ansible Vault que los recrea va cifrado, y tanto el CI como un hook de Git rechazan uno sin cifrar |
 
 ## Cuando algo falla
 
 Lo que importa de una plataforma es lo que pasa en un mal día. Cada experimento, con su hipótesis y sus hallazgos: [docs/chaos.md](docs/chaos.md).
+
+Estos experimentos se hicieron sobre `v1.0-casa` (Pi + portátil). Lo siguiente es repetir los de nodos sobre el clúster híbrido.
 
 | Si… | Qué pasa | Evidencia |
 |---|---|---|
@@ -67,6 +100,7 @@ Lo que importa de una plataforma es lo que pasa en un mal día. Cada experimento
 | `tests/slo/` | Tests unitarios de las reglas y alertas del SLO (`promtool`, en el CI) |
 | `tests/alertmanager/` | Validación de la configuración de Alertmanager, sus rutas y el mensaje de Telegram (`amtool`, en el CI) |
 | `docs/inventory.md` | Hardware, red y software instalado |
+| `docs/wireguard.md` | La VPN, el firewall de las VPS y el paso al clúster híbrido |
 | `docs/diagrams/` | Diagramas de arquitectura como código (HTML → SVG animado, `docs/diagrams/src`) |
 | `docs/slo.md` | SLOs, política de presupuesto de errores y alertas por burn rate |
 | `docs/alerting.md` | Notificaciones de alertas a Telegram |
@@ -74,7 +108,7 @@ Lo que importa de una plataforma es lo que pasa en un mal día. Cada experimento
 
 ## Puesta en marcha
 
-Con Ansible, desde el PC ([detalles](docs/ansible.md)):
+Con Ansible, desde el portátil ([detalles](docs/ansible.md)):
 
 ```bash
 cd ansible
@@ -86,7 +120,7 @@ kubectl -n argocd get applications
 ```
 
 <details>
-<summary>A mano, sin Ansible</summary>
+<summary>A mano, sin Ansible (antiguo: red de casa, antes de la VPN)</summary>
 
 ```bash
 # 1. Unir el portátil como worker (se ejecuta en el portátil; el token sale de la Pi)
