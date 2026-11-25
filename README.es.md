@@ -25,23 +25,9 @@ Las aplicaciones se construyen en otro sitio. [DevSecOps Pipeline](https://githu
 prueba, escanea, firma y publica `demo-api` como imagen multi-arquitectura; este repo decide **qué
 se ejecuta en el clúster**.
 
-```mermaid
-flowchart LR
-  subgraph casa["🏠 Casa"]
-    pi["Raspberry Pi 4 · devops-lab<br/>control plane de k3s · arm64<br/>10.10.0.2"]
-    laptop["Portátil · nexcore<br/>estación de trabajo: kubectl, Ansible<br/>10.10.0.4"]
-  end
-  subgraph nube["☁️ VPS · Ashburn, EE. UU."]
-    hub["vps-estable<br/>hub de WireGuard · fuera del clúster<br/>10.10.0.1"]
-    lab["vps-lab · worker de k3s · amd64<br/>demo-api, Prometheus, Grafana, Alertmanager<br/>10.10.0.3"]
-  end
-  pi <-->|WireGuard| hub
-  lab <-->|WireGuard| hub
-  laptop <-->|WireGuard| hub
-  argo["ArgoCD (en el clúster)"] -.->|sincroniza desde| git["GitHub: este repo"]
-  lab -->|alertas| tg["Telegram"]
-  lab -->|señal de vida| hc["healthchecks.io"]
-```
+<img src="docs/diagrams/es/02-hybrid.svg" alt="Arquitectura híbrida: una Raspberry Pi en casa (control plane de k3s) y el portátil se conectan por túneles WireGuard a una VPS hub fuera del clúster; la VPS worker en Ashburn ejecuta demo-api y el monitoring, lee Git con ArgoCD, avisa por Telegram y manda un latido a healthchecks.io; desde internet solo responde demo-api, Grafana devuelve 403" width="100%">
+
+<sub><a href="https://raw.githubusercontent.com/EA-etn/homelab-k3s/main/docs/diagrams/es/02-hybrid.png">🔍 Ver a tamaño completo</a></sub>
 
 Los nodos hablan solo por la VPN (`wg0`): k3s, Flannel y kubectl nunca cruzan internet en claro. El
 hub vive en una segunda VPS que queda fuera del clúster, así que romper el clúster a propósito nunca

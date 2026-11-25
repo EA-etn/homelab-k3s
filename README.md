@@ -25,23 +25,9 @@ Applications are built elsewhere. [DevSecOps Pipeline](https://github.com/EA-etn
 tests, scans, signs and publishes `demo-api` as a multi-arch image; this repo decides **what runs
 on the cluster**.
 
-```mermaid
-flowchart LR
-  subgraph home["🏠 Home"]
-    pi["Raspberry Pi 4 · devops-lab<br/>k3s control plane · arm64<br/>10.10.0.2"]
-    laptop["Laptop · nexcore<br/>workstation: kubectl, Ansible<br/>10.10.0.4"]
-  end
-  subgraph cloud["☁️ VPS · Ashburn, US"]
-    hub["vps-estable<br/>WireGuard hub · outside the cluster<br/>10.10.0.1"]
-    lab["vps-lab · k3s worker · amd64<br/>demo-api, Prometheus, Grafana, Alertmanager<br/>10.10.0.3"]
-  end
-  pi <-->|WireGuard| hub
-  lab <-->|WireGuard| hub
-  laptop <-->|WireGuard| hub
-  argo["ArgoCD (on the cluster)"] -.->|syncs from| git["GitHub: this repo"]
-  lab -->|alerts| tg["Telegram"]
-  lab -->|heartbeat| hc["healthchecks.io"]
-```
+<img src="docs/diagrams/en/02-hybrid.svg" alt="Hybrid architecture: a Raspberry Pi at home (k3s control plane) and the laptop connect through WireGuard tunnels to a hub VPS outside the cluster; the worker VPS in Ashburn runs demo-api and the monitoring, reads Git through ArgoCD, sends alerts to Telegram and a heartbeat to healthchecks.io; from the internet only demo-api answers, Grafana returns 403" width="100%">
+
+<sub><a href="https://raw.githubusercontent.com/EA-etn/homelab-k3s/main/docs/diagrams/en/02-hybrid.png">🔍 View full size</a></sub>
 
 The nodes talk only through the VPN (`wg0`): k3s, Flannel and kubectl never cross the internet in
 clear text. The hub lives on a second VPS that stays out of the cluster, so breaking the cluster on

@@ -25,6 +25,22 @@ module.exports = {
     'Nodos': 'Nodes',
     'lee Git': 'reads Git',
     'alerta': 'alert',
+    // 02-hybrid
+    'Casa + nube, unidos por WireGuard': 'Home + cloud, joined by WireGuard',
+    'Los nodos hablan solo por el túnel cifrado. El hub vive fuera del clúster: romperlo a propósito nunca tumba la red.': 'The nodes talk only through the encrypted tunnel. The hub lives outside the cluster: breaking the cluster on purpose never takes the network down.',
+    'CASA · LA PAZ': 'HOME · LA PAZ',
+    'NUBE · RACKNERD ASHBURN': 'CLOUD · RACKNERD ASHBURN',
+    'portátil · fuera del clúster': 'laptop · outside the cluster',
+    'Funciona desde cualquier sitio': 'Works from anywhere',
+    'fuera del clúster': 'outside the cluster',
+    'hub WireGuard': 'WireGuard hub',
+    'worker k3s · amd64': 'k3s worker · amd64',
+    'Grafana · solo VPN': 'Grafana · VPN only',
+    'fuente de verdad': 'source of truth',
+    'ufw: solo 80/443 y SSH': 'ufw: only 80/443 and SSH',
+    'ArgoCD lee Git': 'ArgoCD reads Git',
+    'alertas': 'alerts',
+    'latido': 'heartbeat',
     // 00-social (las claves que empiezan por '<' se reemplazan sobre el HTML tal cual)
     '<p style="font:600 34px Inter;color:#e8eefc;margin-top:14px">Un clúster <span style="color:#06b6d4">on-premise</span>, gestionado desde <span style="color:#10b981">Git</span> y <span style="color:#f97316">vigilado</span> con SLOs.</p>':
       '<p style="font:600 34px Inter;color:#e8eefc;margin-top:14px">An <span style="color:#06b6d4">on-premise</span> cluster, managed from <span style="color:#10b981">Git</span> and <span style="color:#f97316">watched</span> with SLOs.</p>',
