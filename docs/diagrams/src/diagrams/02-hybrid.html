@@ -1,0 +1,102 @@
+<!-- size: 1200x830 -->
+<!-- theme: video -->
+<!-- Arquitectura híbrida (casa + nube) con el estilo de los vídeos del proyecto -->
+<style>
+  :root { --panel: rgba(20, 27, 45, .92); --edge: #2c3650; --muted: #9aa6bd;
+    --app: #2dd4bf; --infra: #a78bfa; --mon: #fb923c; --ok: #4ade80; --bad: #f87171; --ext: #60a5fa; }
+  body { background: linear-gradient(160deg, #0a0f1f 0%, #0e1630 55%, #121a35 100%); }
+  .hd { position: absolute; left: 48px; top: 34px; display: flex; align-items: center; gap: 16px; }
+  .tag { height: 32px; padding: 0 15px; border-radius: 16px; border: 2px solid var(--app); color: var(--app);
+    background: rgba(45, 212, 191, .08); display: flex; align-items: center; font: 700 14px Inter; letter-spacing: .1em; }
+  .hd h1 { font: 800 30px "Inter Display"; letter-spacing: -.01em; }
+  .lead { position: absolute; left: 48px; top: 88px; width: 800px; font: 500 17px/1.45 Inter; color: var(--muted); }
+
+  .zone { position: absolute; border: 2px dashed var(--c); border-radius: 20px; background: color-mix(in srgb, var(--c) 5%, transparent); }
+  .zone .zl { position: absolute; left: 20px; top: -15px; height: 28px; padding: 0 12px; border-radius: 14px; background: #0e1630;
+    border: 2px solid var(--c); color: var(--c); font: 600 13px "JetBrains Mono"; letter-spacing: .08em; display: flex; align-items: center; }
+
+  .box { position: absolute; border: 2px solid var(--edge); border-radius: 16px; background: var(--panel); padding: 18px 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .35); }
+  .nh { display: flex; align-items: center; gap: 14px; }
+  .ic { flex: none; width: 50px; height: 50px; border-radius: 13px; display: grid; place-items: center;
+    background: color-mix(in srgb, var(--c) 18%, #141b2d); color: var(--c); }
+  .ic svg { width: 26px; height: 26px; }
+  .nn { font: 800 25px "Inter Display"; line-height: 1.1; }
+  .ns { font: 500 16px Inter; color: var(--muted); margin-top: 3px; }
+  .ip { position: absolute; right: 18px; top: 18px; font: 600 14px "JetBrains Mono"; color: var(--ok);
+    border: 1.5px solid color-mix(in srgb, var(--ok) 45%, transparent); background: rgba(74, 222, 128, .08); border-radius: 8px; padding: 3px 8px; }
+  .chips { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
+  .chip { height: 44px; border-radius: 11px; border: 2px solid var(--c); color: var(--c); background: rgba(8, 11, 22, .95);
+    display: flex; align-items: center; justify-content: center; font: 700 19px Inter; }
+  .note { font: 500 15px/1.4 Inter; color: var(--muted); margin-top: 14px; }
+
+  .ext { position: absolute; height: 72px; border: 2px solid var(--c); border-radius: 14px; background: var(--panel);
+    display: flex; align-items: center; gap: 12px; padding: 0 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, .35); }
+  .ext .ic { width: 40px; height: 40px; border-radius: 10px; }
+  .ext .ic svg { width: 22px; height: 22px; }
+  .en { font: 700 18px Inter; white-space: nowrap; }
+  .es { font: 500 13.5px Inter; color: var(--muted); margin-top: 2px; white-space: nowrap; }
+
+  .wl { font: 700 14px Inter; background: rgba(8, 11, 22, .96); border: 2px solid var(--edge); border-radius: 8px; padding: 3px 10px; }
+</style>
+
+<div class="hd"><div class="tag">HOMELAB-K3S</div><h1>Casa + nube, unidos por WireGuard</h1></div>
+<div class="lead">Los nodos hablan solo por el túnel cifrado. El hub vive fuera del clúster: romperlo a propósito nunca tumba la red.</div>
+
+<!-- Casa -->
+<div class="zone" style="--c:var(--ext);left:40px;top:160px;width:400px;height:510px"><div class="zl">CASA · LA PAZ</div></div>
+<div class="box" id="pi" style="left:64px;top:190px;width:352px;height:226px">
+  <div class="nh"><div class="ic" style="--c:var(--infra)"><i data-icon="cpu"></i></div>
+    <div><div class="nn">devops-lab</div><div class="ns">Raspberry Pi 4 · arm64</div></div></div>
+  <div class="ip">10.10.0.2</div>
+  <div class="chips"><div class="chip" style="--c:var(--infra)">control plane k3s</div><div class="chip" style="--c:var(--app)">demo-api</div></div>
+</div>
+<div class="box" id="laptop" style="left:64px;top:446px;width:352px;height:200px">
+  <div class="nh"><div class="ic" style="--c:var(--ext)"><i data-icon="laptop"></i></div>
+    <div><div class="nn">nexcore</div><div class="ns">portátil · fuera del clúster</div></div></div>
+  <div class="ip">10.10.0.4</div>
+  <div class="chips"><div class="chip" style="--c:var(--ext)">kubectl · Ansible</div></div>
+  <div class="note">Funciona desde cualquier sitio</div>
+</div>
+
+<!-- Nube -->
+<div class="zone" style="--c:var(--app);left:520px;top:160px;width:640px;height:510px"><div class="zl">NUBE · RACKNERD ASHBURN</div></div>
+<div class="box" id="hub" style="left:546px;top:250px;width:272px;height:280px">
+  <div class="nh"><div class="ic" style="--c:var(--ok)"><i data-icon="shield-check"></i></div>
+    <div><div class="nn">vps-estable</div><div class="ns">fuera del clúster</div></div></div>
+  <div class="ip" style="top:auto;bottom:18px;right:auto;left:20px">10.10.0.1</div>
+  <div class="chips"><div class="chip" style="--c:var(--ok)">hub WireGuard</div><div class="chip" style="--c:var(--muted)">51820/udp</div></div>
+</div>
+<div class="box" id="lab" style="left:858px;top:190px;width:278px;height:456px">
+  <div class="nh"><div class="ic" style="--c:var(--app)"><i data-icon="server"></i></div>
+    <div><div class="nn">vps-lab</div><div class="ns">worker k3s · amd64</div></div></div>
+  <div class="ip" style="top:auto;bottom:18px;right:auto;left:20px">10.10.0.3</div>
+  <div class="chips"><div class="chip" style="--c:var(--app)">demo-api</div><div class="chip" style="--c:var(--mon)">Prometheus</div>
+    <div class="chip" style="--c:var(--mon)">Grafana · solo VPN</div><div class="chip" style="--c:var(--mon)">Alertmanager</div></div>
+</div>
+
+<!-- Fuera -->
+<div class="ext" id="gh" style="--c:var(--infra);left:880px;top:40px;width:256px">
+  <div class="ic" style="--c:var(--infra)"><i data-icon="github"></i></div><div><div class="en">GitHub</div><div class="es">fuente de verdad</div></div></div>
+<div class="ext" id="web" style="--c:var(--ext);left:546px;top:722px;width:250px">
+  <div class="ic" style="--c:var(--ext)"><i data-icon="globe"></i></div><div><div class="en">Internet</div><div class="es">ufw: solo 80/443 y SSH</div></div></div>
+<div class="ext" id="tg" style="--c:var(--ext);left:808px;top:722px;width:164px">
+  <div class="ic" style="--c:var(--ext)"><i data-icon="send"></i></div><div class="en">Telegram</div></div>
+<div class="ext" id="hc" style="--c:var(--ext);left:986px;top:722px;width:196px">
+  <div class="ic" style="--c:var(--ext)"><i data-icon="heart-pulse"></i></div><div class="en">healthchecks</div></div>
+
+<script>
+document.body.dataset.dot = '6';
+const OK = '#4ade80', EXT = '#60a5fa', MON = '#fb923c', VIO = '#a78bfa', BAD = '#f87171';
+// Túneles WireGuard: los tres se conectan al hub
+wire('pi:right', 'hub:left@0.1893', { color: OK, width: 4, arrow: false, label: 'WireGuard', labelColor: OK });
+wire('laptop:right', 'hub:left@0.9', { color: OK, width: 4, arrow: false });
+wire('lab:left@0.2478', 'hub:right@0.1893', { color: OK, width: 4, arrow: false });
+// GitOps
+wire('gh:bottom', 'lab:top', { color: VIO, width: 3, label: 'ArgoCD lee Git', labelColor: VIO });
+// Internet: demo-api sí, Grafana no
+wire('web:top', 'lab:left@0.86', { color: EXT, width: 3, label: 'demo-api · Grafana: 403', labelColor: EXT });
+// Avisos
+wire('lab:bottom@0.25', 'tg:top', { color: MON, width: 3, label: 'alertas', labelColor: MON });
+wire('lab:bottom@0.78', 'hc:top', { color: MON, width: 3, dashed: true, label: 'latido', labelColor: MON });
+</script>

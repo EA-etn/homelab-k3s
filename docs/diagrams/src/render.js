@@ -16,7 +16,7 @@ const kit = fs.readFileSync(path.join(dir, 'kit.js'), 'utf8');
 // Fuentes que se incrustan en los SVG (subconjunto con solo los caracteres usados)
 const FONT_FILES = {
   'Inter|500': 'Inter-Medium', 'Inter|600': 'Inter-SemiBold', 'Inter|700': 'Inter-Bold',
-  'Inter Display|700': 'InterDisplay-Bold', 'Inter Display|800': 'InterDisplay-ExtraBold',
+  'Inter|800': 'Inter-ExtraBold', 'Inter Display|700': 'InterDisplay-Bold', 'Inter Display|800': 'InterDisplay-ExtraBold',
   'JetBrains Mono|500': 'JetBrainsMono-Medium', 'JetBrains Mono|600': 'JetBrainsMono-SemiBold',
   'JetBrains Mono|700': 'JetBrainsMono-SemiBold',
 };
@@ -74,6 +74,8 @@ const SVG_STYLE = `
     for (const f of files) {
       const raw = translate(fs.readFileSync(path.join(dir, 'diagrams', f), 'utf8'), lang);
       const [, w, h] = raw.match(/<!--\s*size:\s*(\d+)x(\d+)\s*-->/);
+      // <!-- theme: video -->: el estilo de los vídeos del proyecto (fondo azul noche, puntos grandes)
+      const video = /<!--\s*theme:\s*video\s*-->/.test(raw);
       const body = icons(raw);
       const script = (body.match(/<script>[\s\S]*<\/script>/) || [''])[0];
       const html = `<!doctype html><html lang="${lang}"><head><meta charset="utf-8"><style>${css}</style>
@@ -96,8 +98,12 @@ const SVG_STYLE = `
 <filter id="shadow" x="-10%" y="-10%" width="120%" height="140%"><feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#000" flood-opacity="0.35"/></filter>
 <filter id="glow" x="-200%" y="-200%" width="500%" height="500%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
 </defs>
-<rect width="${w}" height="${h}" fill="#0b0d12"/>
-<rect width="${w}" height="${h}" fill="url(#dots)"/>
+${video ? `<linearGradient id="bgv" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0a0f1f"/><stop offset="0.55" stop-color="#0e1630"/><stop offset="1" stop-color="#121a35"/></linearGradient>
+<radialGradient id="glv1" cx="1" cy="0" r="0.75"><stop offset="0" stop-color="rgba(45,212,191,0.16)"/><stop offset="1" stop-color="rgba(45,212,191,0)"/></radialGradient>
+<radialGradient id="glv2" cx="0" cy="1" r="0.6"><stop offset="0" stop-color="rgba(96,165,250,0.10)"/><stop offset="1" stop-color="rgba(96,165,250,0)"/></radialGradient>
+<rect width="${w}" height="${h}" fill="url(#bgv)"/><rect width="${w}" height="${h}" fill="url(#glv1)"/><rect width="${w}" height="${h}" fill="url(#glv2)"/>`
+    : `<rect width="${w}" height="${h}" fill="#0b0d12"/>
+<rect width="${w}" height="${h}" fill="url(#dots)"/>`}
 ${svgBody}
 </svg>`;
       fs.writeFileSync(path.join(out, lang, name + '.svg'), svg);

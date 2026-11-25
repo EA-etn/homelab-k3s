@@ -73,7 +73,9 @@ module.exports = function exportSvg() {
     out.push(`<svg x="${n(r.left)}" y="${n(r.top)}" width="${n(r.width)}" height="${n(r.height)}" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${svg.innerHTML}</svg>`);
   }
 
-  // Cables: línea base + puntos de luz que recorren el camino
+  // Cables: línea base + puntos de luz que recorren el camino. El radio del punto se puede
+  // cambiar por diagrama con document.body.dataset.dot (los del estilo vídeo son más grandes)
+  const DOT = parseFloat(document.body.dataset.dot || '4.5');
   function wires(svg) {
     // Solo los cables: las puntas de flecha (<marker> dentro de <defs>) también son <path>, y
     // animarlas dibujaba un punto negro dando vueltas en la esquina superior izquierda
@@ -88,7 +90,7 @@ module.exports = function exportSvg() {
       const begin = n((i * 0.45) % 3);
       out.push(`<path d="${d}" fill="none" stroke="${stroke}" stroke-width="${p.getAttribute('stroke-width')}" stroke-linecap="round" stroke-opacity="0.75"` +
         `${dash ? ` stroke-dasharray="${dash}"` : ''}${p.getAttribute('marker-end') ? ` marker-end="${p.getAttribute('marker-end')}"` : ''}/>`);
-      anim.push(`<circle r="4.5" fill="${stroke}" filter="url(#glow)" opacity="0">` +
+      anim.push(`<circle r="${DOT}" fill="${stroke}" filter="url(#glow)" opacity="0">` +
         `<animateMotion dur="${dur}s" begin="${begin}s" repeatCount="indefinite" path="${d}"/>` +
         `<animate attributeName="opacity" dur="${dur}s" begin="${begin}s" repeatCount="indefinite" values="0;1;1;0" keyTimes="0;0.12;0.85;1"/></circle>`);
     });
