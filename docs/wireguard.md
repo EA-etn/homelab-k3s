@@ -158,7 +158,7 @@ configuración lleva la clave privada del móvil, así que no se copia a ningún
 
 ```bash
 ssh antonio@107.175.134.57
-sudo qrencode -t ansiutf8 < /etc/wireguard/clientes/movil.conf
+sudo qrencode -t ansiutf8 -r /etc/wireguard/clientes/movil.conf
 ```
 
 En la app: **+** → **Escanear desde código QR**. Para añadir otro dispositivo, se suma a

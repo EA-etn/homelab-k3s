@@ -1,5 +1,5 @@
 # {{ item.name }}: salida a internet por EE. UU. Escanéala como QR con la app de WireGuard:
-#   sudo qrencode -t ansiutf8 < /etc/wireguard/clientes/{{ item.name }}.conf
+#   sudo qrencode -t ansiutf8 -r /etc/wireguard/clientes/{{ item.name }}.conf
 [Interface]
 PrivateKey = {{ wireguard_exit_device_private[item.name] }}
 Address = {{ item.ip }}/32
