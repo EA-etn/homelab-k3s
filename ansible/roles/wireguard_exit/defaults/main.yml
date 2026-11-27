@@ -1,0 +1,10 @@
+# Interfaz del túnel de salida en el hub y en los equipos gestionados por Ansible
+wireguard_exit_interface: wg1
+wireguard_exit_client_interface: eeuu
+# DNS por el túnel: así las webs tampoco ven el DNS de casa
+wireguard_exit_dns: 1.1.1.1
+# Dispositivos sin Ansible (el móvil): su clave y su configuración se generan en el hub, en
+# /etc/wireguard/clientes/<nombre>.conf, para escanearlas como QR con la app de WireGuard
+wireguard_exit_devices:
+  - name: movil
+    ip: 10.20.0.10

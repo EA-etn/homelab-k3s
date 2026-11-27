@@ -29,6 +29,11 @@ all:
         vps-estable:
           ansible_host: 107.175.134.57
           ansible_user: antonio
+    # Salida a internet por EE. UU. (10.20.0.0/24): el hub y los equipos que pueden usarla
+    wireguard_exit:
+      hosts:
+        vps-estable:
+        nexcore:
     # Red privada WireGuard (10.10.0.0/24): vps-estable es el hub y el resto se conecta a él
     wireguard:
       hosts:

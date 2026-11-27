@@ -21,3 +21,9 @@ homelab_hostnames:
 wireguard_network: 10.10.0.0/24
 wireguard_port: 51820
 wireguard_hub: vps-estable
+
+# Salida a internet por EE. UU. (rol wireguard_exit): un segundo túnel en el hub, aparte de la VPN
+# del homelab. Los dispositivos que lo encienden navegan con la IP pública del hub.
+wireguard_exit_network: 10.20.0.0/24
+wireguard_exit_hub_ip: 10.20.0.1
+wireguard_exit_port: 51821

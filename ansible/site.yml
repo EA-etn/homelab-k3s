@@ -26,6 +26,12 @@
   roles:
     - wireguard
 
+- name: 1d. Salida a internet por EE. UU. (opcional, se enciende a mano)
+  hosts: wireguard_exit
+  become: true
+  roles:
+    - wireguard_exit
+
 - name: 2. Servidor k3s (control plane) en la Raspberry Pi
   hosts: k3s_server
   become: true

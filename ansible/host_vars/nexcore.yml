@@ -6,3 +6,5 @@ ansible_become_exe: sudo.ws
 
 # IP en la red privada WireGuard (rol wireguard)
 wireguard_ip: 10.10.0.4
+# IP en el túnel de salida por EE. UU. (rol wireguard_exit; se enciende a mano)
+wireguard_exit_ip: 10.20.0.2
