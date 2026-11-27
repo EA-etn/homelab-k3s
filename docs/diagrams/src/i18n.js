@@ -28,8 +28,8 @@ module.exports = {
     // 02-hybrid
     'Casa + nube, unidos por WireGuard': 'Home + cloud, joined by WireGuard',
     'Los nodos hablan solo por el túnel cifrado. El hub vive fuera del clúster: romperlo a propósito nunca tumba la red.': 'The nodes talk only through the encrypted tunnel. The hub lives outside the cluster: breaking the cluster on purpose never takes the network down.',
-    'CASA · LA PAZ': 'HOME · LA PAZ',
-    'NUBE · RACKNERD ASHBURN': 'CLOUD · RACKNERD ASHBURN',
+    'CASA': 'HOME',
+    'NUBE · VPS ASHBURN': 'CLOUD · VPS ASHBURN',
     'portátil · fuera del clúster': 'laptop · outside the cluster',
     'Funciona desde cualquier sitio': 'Works from anywhere',
     'fuera del clúster': 'outside the cluster',
