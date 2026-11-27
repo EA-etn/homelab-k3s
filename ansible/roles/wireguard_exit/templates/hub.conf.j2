@@ -1,0 +1,22 @@
+# Gestionado por Ansible (homelab-k3s/ansible/roles/wireguard_exit). No editar a mano.
+# Salida a internet: lo que llega por este túnel sale a internet con la IP pública del hub (NAT).
+[Interface]
+Address = {{ wireguard_exit_hub_ip }}/{{ wireguard_exit_network | split('/') | last }}
+ListenPort = {{ wireguard_exit_port }}
+PostUp = wg set %i private-key /etc/wireguard/{{ wireguard_exit_interface }}.key
+PostUp = iptables -t nat -A POSTROUTING -s {{ wireguard_exit_network }} -o {{ ansible_facts['default_ipv4']['interface'] }} -j MASQUERADE
+PostDown = iptables -t nat -D POSTROUTING -s {{ wireguard_exit_network }} -o {{ ansible_facts['default_ipv4']['interface'] }} -j MASQUERADE
+{% for host in groups['wireguard_exit'] if host != wireguard_hub %}
+
+[Peer]
+# {{ host }}
+PublicKey = {{ hostvars[host].wireguard_exit_public_key }}
+AllowedIPs = {{ hostvars[host].wireguard_exit_ip }}/32
+{% endfor %}
+{% for dev in wireguard_exit_devices %}
+
+[Peer]
+# {{ dev.name }} (configuración en /etc/wireguard/clientes/{{ dev.name }}.conf)
+PublicKey = {{ wireguard_exit_device_keys[dev.name] | default('') }}
+AllowedIPs = {{ dev.ip }}/32
+{% endfor %}

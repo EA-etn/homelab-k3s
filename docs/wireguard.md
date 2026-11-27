@@ -128,3 +128,46 @@ kubectl get nodes -o wide        # devops-lab y vps-lab, Ready, con IPs 10.10.0.
 `reset.yml` desinstala el agente en **cualquier** máquina que lo tenga, así que también limpia el
 portátil aunque ya no esté en `k3s_agents`. Se pierden las métricas de Prometheus; lo demás vuelve
 desde Git. El estado anterior (todo en casa) queda en la etiqueta `v1.0-casa`.
+
+## Salida a internet por EE. UU. (rol `wireguard_exit`)
+
+Un **segundo túnel**, aparte de la VPN del homelab, para que el portátil o el móvil naveguen con la
+IP pública de `vps-estable` (Ashburn), como si estuvieran en EE. UU. Útil en Wi-Fi públicas (todo
+va cifrado hasta el hub) o para webs que solo funcionan desde allí.
+
+| Pieza | Dónde | Qué hace |
+|---|---|---|
+| `wg1` (10.20.0.1, puerto 51821/udp) | `vps-estable` | Recibe el túnel y reenvía a internet con NAT (`MASQUERADE`) |
+| `eeuu` (10.20.0.2) | Portátil | Todo el tráfico (`0.0.0.0/0`) y el DNS (1.1.1.1) por el túnel. **No arranca solo** |
+| `movil` (10.20.0.10) | Móvil, app de WireGuard | Configuración generada en el hub, para escanear como QR |
+
+La VPN del homelab (`wg0`) sigue funcionando igual con la salida encendida o apagada.
+
+### Usarlo
+
+Portátil:
+
+```bash
+sudo wg-quick up eeuu      # salir por EE. UU.
+curl -s ipinfo.io/country  # US
+sudo wg-quick down eeuu    # volver a la conexión normal
+```
+
+Móvil: instalar la app **WireGuard**, entrar por SSH al hub y mostrar el QR (solo lo lee root; la
+configuración lleva la clave privada del móvil, así que no se copia a ningún sitio):
+
+```bash
+ssh antonio@107.175.134.57
+sudo qrencode -t ansiutf8 -r /etc/wireguard/clientes/movil.conf
+```
+
+En la app: **+** → **Escanear desde código QR**. Para añadir otro dispositivo, se suma a
+`wireguard_exit_devices` (`roles/wireguard_exit/defaults/main.yml`) con una IP nueva.
+
+### Lo que conviene saber
+
+- Las plataformas de streaming suelen bloquear las IPs de centros de datos.
+- La IP del hub tuvo otro dueño antes: algunas webs pueden pedir más captchas.
+- Se añaden ~118 ms de latencia: bien para navegar, peor para juegos en línea.
+- Todo el tráfico sale con la IP de la VPS: el proveedor responde ante abusos, y el responsable es
+  quien la contrata.

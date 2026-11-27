@@ -1,0 +1,142 @@
+# Salida a internet por EE. UU.: un segundo túnel WireGuard, aparte de la VPN del homelab (wg0).
+# En el hub (wg1) lo que llega se reenvía a internet con su IP pública (NAT). En el portátil es la
+# conexión "eeuu", que no arranca sola: se enciende y se apaga a mano.
+#
+# Las claves de los equipos con Ansible se generan en cada equipo y no salen de él. Las del móvil se
+# generan en el hub (el móvil no tiene Ansible) y solo las lee root, para pasarlas como QR.
+
+- name: Instalar las herramientas de WireGuard (y qrencode en el hub, para el QR del móvil)
+  ansible.builtin.apt:
+    name: "{{ ['wireguard-tools'] + (['qrencode'] if inventory_hostname == wireguard_hub else []) }}"
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+  register: wireguard_exit_apt
+
+# --- Claves -----------------------------------------------------------------------------------
+
+- name: Generar la clave privada de este túnel (solo la primera vez)
+  ansible.builtin.shell: umask 077 && wg genkey > {{ wireguard_exit_keyfile }}
+  args:
+    creates: "{{ wireguard_exit_keyfile }}"
+  vars:
+    wireguard_exit_keyfile: "/etc/wireguard/{{ wireguard_exit_interface if inventory_hostname == wireguard_hub else wireguard_exit_client_interface }}.key"
+
+- name: Calcular la clave pública
+  ansible.builtin.shell: wg pubkey < {{ wireguard_exit_keyfile }}
+  vars:
+    wireguard_exit_keyfile: "/etc/wireguard/{{ wireguard_exit_interface if inventory_hostname == wireguard_hub else wireguard_exit_client_interface }}.key"
+  register: wireguard_exit_pubkey
+  changed_when: false
+  check_mode: false
+  # En una simulación sobre una máquina nueva la clave aún no existe
+  failed_when: wireguard_exit_pubkey.rc != 0 and not ansible_check_mode
+
+- name: Compartir la clave pública con el resto
+  ansible.builtin.set_fact:
+    wireguard_exit_public_key: "{{ wireguard_exit_pubkey.stdout | default('') }}"
+
+- name: La clave pública del hub, con su propio nombre (la leen el portátil y el móvil)
+  ansible.builtin.set_fact:
+    wireguard_exit_hub_public_key: "{{ wireguard_exit_pubkey.stdout | default('') }}"
+  when: inventory_hostname == wireguard_hub
+
+# --- Hub ----------------------------------------------------------------------------------------
+
+- name: Hub · túnel de salida
+  when: inventory_hostname == wireguard_hub
+  block:
+    - name: Crear /etc/wireguard/clientes (solo root)
+      ansible.builtin.file:
+        path: /etc/wireguard/clientes
+        state: directory
+        owner: root
+        group: root
+        mode: "0700"
+
+    - name: Generar la clave de cada dispositivo sin Ansible (solo la primera vez)
+      ansible.builtin.shell: umask 077 && wg genkey > /etc/wireguard/clientes/{{ item.name }}.key
+      args:
+        creates: "/etc/wireguard/clientes/{{ item.name }}.key"
+      loop: "{{ wireguard_exit_devices }}"
+
+    - name: Leer la clave privada de cada dispositivo
+      ansible.builtin.slurp:
+        src: "/etc/wireguard/clientes/{{ item.name }}.key"
+      loop: "{{ wireguard_exit_devices }}"
+      register: wireguard_exit_device_slurp
+      failed_when: wireguard_exit_device_slurp.failed and not ansible_check_mode
+      no_log: true
+
+    - name: Calcular la clave pública de cada dispositivo
+      ansible.builtin.shell: wg pubkey < /etc/wireguard/clientes/{{ item.name }}.key
+      loop: "{{ wireguard_exit_devices }}"
+      register: wireguard_exit_device_pub
+      changed_when: false
+      check_mode: false
+      failed_when: wireguard_exit_device_pub.rc != 0 and not ansible_check_mode
+
+    - name: Guardar las claves de los dispositivos
+      ansible.builtin.set_fact:
+        wireguard_exit_device_keys: >-
+          {{ dict(wireguard_exit_devices | map(attribute='name')
+          | zip(wireguard_exit_device_pub.results | map(attribute='stdout', default=''))) }}
+        wireguard_exit_device_private: >-
+          {{ dict(wireguard_exit_devices | map(attribute='name')
+          | zip(wireguard_exit_device_slurp.results | map(attribute='content', default='') | map('b64decode') | map('trim'))) }}
+      no_log: true
+
+    - name: Configuración del túnel de salida en el hub
+      ansible.builtin.template:
+        src: hub.conf.j2
+        dest: "/etc/wireguard/{{ wireguard_exit_interface }}.conf"
+        owner: root
+        group: root
+        mode: "0600"
+      notify: Reiniciar la salida por EE. UU.
+
+    - name: Configuración de cada dispositivo sin Ansible (para el QR)
+      ansible.builtin.template:
+        src: device.conf.j2
+        dest: "/etc/wireguard/clientes/{{ item.name }}.conf"
+        owner: root
+        group: root
+        mode: "0600"
+      loop: "{{ wireguard_exit_devices }}"
+      no_log: true
+
+    # ufw niega por defecto el tráfico reenviado: este es el que entra por wg1 y sale a internet
+    - name: Dejar salir a internet el tráfico del túnel
+      ansible.builtin.command: ufw route allow in on {{ wireguard_exit_interface }} out on {{ ansible_facts['default_ipv4']['interface'] }}
+      register: wireguard_exit_route
+      changed_when: "'Skipping' not in wireguard_exit_route.stdout"
+
+    - name: Arrancar el túnel de salida, también en cada arranque
+      ansible.builtin.systemd_service:
+        name: "wg-quick@{{ wireguard_exit_interface }}"
+        state: started
+        enabled: true
+      when: not (ansible_check_mode and wireguard_exit_apt is changed)
+
+# --- Equipos con Ansible (el portátil) --------------------------------------------------------
+
+- name: Portátil · conexión "eeuu"
+  when: inventory_hostname != wireguard_hub
+  block:
+    # wg-quick usa resolvconf para poner el DNS del túnel; sin él, la conexión no levantaría
+    - name: Ver si hay resolvconf (para el DNS del túnel)
+      ansible.builtin.command: which resolvconf
+      register: wireguard_exit_resolvconf
+      changed_when: false
+      failed_when: false
+      check_mode: false
+
+    - name: Configuración de la conexión eeuu (no arranca sola)
+      ansible.builtin.template:
+        src: client.conf.j2
+        dest: "/etc/wireguard/{{ wireguard_exit_client_interface }}.conf"
+        owner: root
+        group: root
+        mode: "0600"
+      vars:
+        wireguard_exit_has_resolvconf: "{{ wireguard_exit_resolvconf.rc == 0 }}"

@@ -1,0 +1,17 @@
+# Gestionado por Ansible (homelab-k3s/ansible/roles/wireguard_exit). No editar a mano.
+# Salida a internet por EE. UU.: todo el tráfico va por el hub. NO arranca solo:
+#   sudo wg-quick up {{ wireguard_exit_client_interface }}     # salir por EE. UU.
+#   sudo wg-quick down {{ wireguard_exit_client_interface }}   # volver a la conexión normal
+[Interface]
+Address = {{ wireguard_exit_ip }}/32
+PostUp = wg set %i private-key /etc/wireguard/{{ wireguard_exit_client_interface }}.key
+{% if wireguard_exit_has_resolvconf %}
+DNS = {{ wireguard_exit_dns }}
+{% endif %}
+
+[Peer]
+# {{ wireguard_hub }} (hub)
+PublicKey = {{ hostvars[wireguard_hub].wireguard_exit_hub_public_key }}
+Endpoint = {{ hostvars[wireguard_hub].wireguard_endpoint }}:{{ wireguard_exit_port }}
+AllowedIPs = 0.0.0.0/0
+PersistentKeepalive = 25
